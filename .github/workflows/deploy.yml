@@ -18,12 +18,12 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: "npm"
+          node-version: 24
+          cache: "pnpm"
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
       - name: Build
-        run: npm run build
+        run: pnpm build
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
         with:
