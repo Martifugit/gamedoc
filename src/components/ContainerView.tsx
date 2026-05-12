@@ -9,7 +9,6 @@ import {
 } from "lucide-react"
 import { Button } from "./ui/button"
 import {
-  HEADING_SIZE_BY_LEVEL,
   uid,
   type Block,
   type Container,
@@ -24,6 +23,7 @@ import { BlockView } from "./BlockView"
 import { ConfirmDelete } from "./ConfirmDelete"
 import { RefCopyButton } from "./RefCopyButton"
 import { HeadingSelect } from "./heading-select"
+import { useLocalDraft } from "@/hooks/use-local-draft"
 
 export function ContainerView({
   container,
@@ -62,15 +62,8 @@ export function ContainerView({
           value={container.level}
           onChange={(v) => onChange((c) => ({ ...c, level: v }))}
         />
-        <HeadingTag
-          className={`min-w-0 flex-1 ${HEADING_SIZE_BY_LEVEL[container.level]}`}
-        >
-          <input
-            value={container.title}
-            onChange={(e) => onChange((c) => ({ ...c, title: e.target.value }))}
-            className="w-full bg-transparent outline-none"
-            placeholder="Heading"
-          />
+        <HeadingTag className={`min-w-0 flex-1 text-2xl`}>
+          <ContainerTitleInput onChange={onChange} title={container.title} />
         </HeadingTag>
         <RefCopyButton
           sectionId={secId}
@@ -205,5 +198,27 @@ export function ContainerView({
         />
       ))}
     </div>
+  )
+}
+
+function ContainerTitleInput({
+  title,
+  onChange,
+}: {
+  title: string
+  onChange: (fn: (c: Container) => Container) => void
+}) {
+  const draft = useLocalDraft(title, (value) =>
+    onChange((s) => ({ ...s, title: value }))
+  )
+  return (
+    <input
+      value={draft.value}
+      onBlur={draft.onBlur}
+      onChange={(e) => draft.onChange(e.target.value)}
+      className="w-full bg-transparent outline-none"
+      placeholder="Heading"
+      spellCheck={false}
+    />
   )
 }

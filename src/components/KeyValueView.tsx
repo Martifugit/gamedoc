@@ -4,12 +4,13 @@ import { Input } from "./ui/input"
 import { uid, type KeyValuePair, type KeyValueSet } from "@/lib/gamedoc-types"
 import { useRef, useState } from "react"
 import { flushSync } from "react-dom"
-import { InsertLinkButton } from "./InsertLinkButton"
+import { InsertLinkPopover } from "./InsertLinkPopover"
 import { ReferencePicker } from "./ReferencePicker"
 import { VariablePicker } from "./VariablePicker"
 import { formatVariableReference } from "@/lib/reference-syntax"
 import type { Ctx, Section } from "@/lib/gamedoc-types"
 import { RenderInline } from "./RenderInline"
+import { useEditorInput } from "@/hooks/use-editable-input"
 
 export function KeyValueView({
   keyValue,
@@ -38,12 +39,6 @@ export function KeyValueView({
   const inputRefs = useRef<
     Record<number, { key?: HTMLInputElement; value?: HTMLInputElement }>
   >({})
-
-  const setInputRef =
-    (i: number, field: "key" | "value") => (el: HTMLInputElement | null) => {
-      if (!inputRefs.current[i]) inputRefs.current[i] = {}
-      inputRefs.current[i][field] = el ?? undefined
-    }
 
   const insert = (snippet: string) => {
     const focused = focusedRef.current
@@ -117,8 +112,19 @@ export function KeyValueView({
               local={local}
               onChange={onChange}
               pair={p}
-              setInputRef={setInputRef}
               setLocal={setLocal}
+              keyInputRefCb={(el) => {
+                inputRefs.current[i] = {
+                  ...inputRefs.current[i],
+                  key: el ?? undefined,
+                }
+              }}
+              valueInputRefCb={(el) => {
+                inputRefs.current[i] = {
+                  ...inputRefs.current[i],
+                  value: el ?? undefined,
+                }
+              }}
             />
           ))}
         </dl>
@@ -161,7 +167,7 @@ export function KeyValueView({
           </Button>
         </div>
         <div className="flex items-center gap-1">
-          <InsertLinkButton onInsert={insert} />
+          <InsertLinkPopover onInsert={insert} />
           <ReferencePicker
             allSections={allSections}
             onPick={(ref) => insert(ref)}
@@ -189,7 +195,8 @@ export function Pair({
   index,
   local,
   focusedRef,
-  setInputRef,
+  keyInputRefCb,
+  valueInputRefCb,
   setLocal,
   onChange,
 }: {
@@ -200,10 +207,9 @@ export function Pair({
     index: number
     field: "key" | "value"
   } | null>
-  setInputRef: (
-    i: number,
-    field: "key" | "value"
-  ) => (el: HTMLInputElement | null) => void
+  keyInputRefCb: React.RefCallback<HTMLInputElement>
+  valueInputRefCb: React.RefCallback<HTMLInputElement>
+
   onChange: (
     fn: (d: KeyValueSet) => {
       subtitle?: string
@@ -212,10 +218,13 @@ export function Pair({
   ) => void
   setLocal: (value: React.SetStateAction<KeyValueSet>) => void
 }) {
+  const mergedKeyInputRef = useEditorInput<HTMLInputElement>(keyInputRefCb)
+  const mergedValueInputRef = useEditorInput<HTMLInputElement>(valueInputRefCb)
+
   return (
     <div key={pair.id} className="group/pair flex items-center gap-2">
       <Input
-        ref={setInputRef(index, "key")}
+        ref={mergedKeyInputRef}
         value={pair.key}
         placeholder="Key"
         className="h-7 w-40 rounded-md border-border/75 bg-transparent! text-sm"
@@ -240,7 +249,7 @@ export function Pair({
       />
       <span className="text-muted-foreground">:</span>
       <Input
-        ref={setInputRef(index, "value")}
+        ref={mergedValueInputRef}
         value={pair.value}
         placeholder="Value"
         className="h-7 flex-1 rounded-md border-border/75 bg-transparent! text-sm"

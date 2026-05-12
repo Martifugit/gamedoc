@@ -2,13 +2,15 @@ import type { Ctx, ListBlock, Section } from "@/lib/gamedoc-types"
 import { Button } from "./ui/button"
 import { ListIcon, ListOrdered } from "lucide-react"
 import { useState, useRef, useEffect, memo, useCallback } from "react"
-import { InsertLinkButton } from "./InsertLinkButton"
+import { InsertLinkPopover } from "./InsertLinkPopover"
 import { ReferencePicker } from "./ReferencePicker"
 import { VariablePicker } from "./VariablePicker"
 import { flushSync } from "react-dom"
 import { HeadingSelect } from "./heading-select"
 import { Input } from "./ui/input"
 import { RenderInline } from "./RenderInline"
+import { useLocalArrayDraft, useLocalDraft } from "@/hooks/use-local-draft"
+import { useEditorInput } from "@/hooks/use-editable-input"
 
 export function ListBlockView({
   block,
@@ -21,8 +23,14 @@ export function ListBlockView({
   allSections: Section[]
   onChange: (fn: (b: ListBlock) => ListBlock) => void
 }) {
-  const [localHeading, setLocalHeading] = useState(block.heading ?? "")
-  const [localItems, setLocalItems] = useState(block.items)
+  const headingDraft = useLocalDraft(block.heading, (val) =>
+    onChange((p) => ({ ...p, heading: val }))
+  )
+
+  const itemsDraft = useLocalArrayDraft(block.items, (nextItems) => {
+    onChange((prev: ListBlock) => ({ ...prev, items: nextItems }))
+  })
+
   const [showPreview, setShowPreview] = useState(false)
   const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
@@ -33,6 +41,9 @@ export function ListBlockView({
       inputRefs.current[activeItemIndex]?.focus()
     }
   }, [activeItemIndex])
+
+  const items = itemsDraft.value
+  const heading = headingDraft.value
 
   const insertIntoActiveItem = (snippet: string) => {
     if (activeItemIndex === null) return
@@ -45,24 +56,17 @@ export function ListBlockView({
       input.value.slice(0, start) + snippet + input.value.slice(end)
 
     flushSync(() => {
-      const next = localItems.map((item, i) =>
-        i === activeItemIndex ? nextText : item
-      )
-      setLocalItems(next)
-      onChange((b) => ({ ...b, items: next }))
+      const next = itemsDraft.insert(activeItemIndex, nextText)
+      itemsDraft.commit(next)
     })
 
     input.focus()
     input.setSelectionRange(start + snippet.length, start + snippet.length)
   }
 
-  const updateItem = useCallback((index: number, value: string) => {
-    setLocalItems((prev) => prev.map((x, i) => (i === index ? value : x)))
-  }, [])
-
   const handleListBlur = (e: React.FocusEvent<HTMLUListElement>) => {
     if (e.currentTarget.contains(e.relatedTarget)) return
-    onChange((b) => ({ ...b, items: localItems }))
+    onChange((b) => ({ ...b, items: items }))
   }
 
   const handleFocus = useCallback((index: number) => {
@@ -76,27 +80,21 @@ export function ListBlockView({
   ) => {
     if (e.key === "Enter") {
       e.preventDefault()
-      const next = [
-        ...localItems.slice(0, index + 1),
-        "",
-        ...localItems.slice(index + 1),
-      ]
       flushSync(() => {
-        setLocalItems(next)
-        onChange((b) => ({ ...b, items: next }))
+        const next = itemsDraft.insert(index, "")
+        itemsDraft.commit(next)
       })
       inputRefs.current[index + 1]?.focus()
     } else if (
       e.key === "Backspace" &&
       currentValue === "" &&
-      localItems.length > 1
+      items.length > 1
     ) {
       e.preventDefault()
       const target = index > 0 ? index - 1 : 0
-      const next = localItems.filter((_, j) => j !== index)
       flushSync(() => {
-        setLocalItems(next)
-        onChange((b) => ({ ...b, items: next }))
+        const next = itemsDraft.remove(target)
+        itemsDraft.commit(next)
       })
       inputRefs.current[target]?.focus()
       setActiveItemIndex(target)
@@ -116,32 +114,27 @@ export function ListBlockView({
           }
         />
         <Input
+          onBlur={headingDraft.onBlur}
           placeholder="Optional Heading..."
           className="rounded-md bg-transparent!"
-          value={localHeading}
-          onBlur={() =>
-            onChange((b) => ({
-              ...b,
-              heading: localHeading,
-            }))
-          }
-          onChange={(e) => setLocalHeading(e.currentTarget.value)}
+          value={heading}
+          onChange={(e) => headingDraft.onChange(e.currentTarget.value)}
         />
       </div>
       <ul
         onBlur={handleListBlur}
         className={`space-y-1 pl-5 ${block.ordered ? "list-decimal" : "list-disc"}`}
       >
-        {localItems.map((item, i) => (
+        {items.map((item, i) => (
           <li
             key={`item-editable-${i}`}
             className="grid grid-cols-[24px_1fr] leading-relaxed"
           >
             <span className="mr-2">{!block.ordered ? "•" : `${i + 1}.`}</span>
-            <ListItem
+            <ListItemInput
               value={item}
               index={i}
-              onUpdate={updateItem}
+              onUpdate={itemsDraft.update}
               onFocus={handleFocus}
               onKeyDown={handleKeyDown}
               inputRef={(el) => {
@@ -154,7 +147,7 @@ export function ListBlockView({
 
       {showPreview && (
         <div className="rounded-md bg-input/20 p-2 text-sm text-muted-foreground">
-          {localItems.map((item, i) => (
+          {items.map((item, i) => (
             <div
               key={`item-preview-${i}`}
               className="grid grid-cols-[20px_1fr]"
@@ -185,7 +178,7 @@ export function ListBlockView({
           {/* Only show insertion tools when an item is focused */}
           {activeItemIndex !== null && (
             <div className="flex items-center gap-2">
-              <InsertLinkButton onInsert={insertIntoActiveItem} />
+              <InsertLinkPopover onInsert={insertIntoActiveItem} />
               <ReferencePicker
                 allSections={allSections}
                 onPick={(ref) => insertIntoActiveItem(ref)}
@@ -211,10 +204,10 @@ export function ListBlockView({
   )
 }
 
-const ListItem = memo(function ListItem({
+const ListItemInput = memo(function ListItemInput({
   value,
   index,
-  onUpdate, // flush this item's text up to ListBlockView's localItems
+  onUpdate,
   onFocus,
   onKeyDown,
   inputRef,
@@ -228,11 +221,13 @@ const ListItem = memo(function ListItem({
     index: number,
     currentValue: string
   ) => void
-  inputRef: (el: HTMLInputElement | null) => void
+  inputRef: React.RefCallback<HTMLInputElement>
 }) {
+  const mergedRef = useEditorInput<HTMLInputElement>(inputRef)
+
   return (
     <input
-      ref={inputRef}
+      ref={mergedRef}
       value={value}
       onChange={(e) => onUpdate(index, e.target.value)}
       onFocus={() => onFocus(index)}

@@ -228,7 +228,7 @@ const ContainerRenderer = ({
   const HeadingTag = `h${container.level}` as keyof React.JSX.IntrinsicElements
 
   const additionalStyles = {
-    1: "mt-8 mb-4 pb-2 border-b border-border",
+    1: "mt-8 mb-4 pb-2 ",
     2: "mt-6 mb-3 opacity-90",
     3: "mt-5 mb-2 opacity-85",
     4: "mt-4 mb-2 opacity-80",

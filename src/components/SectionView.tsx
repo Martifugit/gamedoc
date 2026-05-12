@@ -13,11 +13,14 @@ import { ConfirmDelete } from "./ConfirmDelete"
 import { VariablesPanel } from "./VariablesPanel"
 import { ContainerView } from "./ContainerView"
 import { Textarea } from "./ui/textarea"
+import { useEditorInput } from "@/hooks/use-editable-input"
+import { useLocalDraft } from "@/hooks/use-local-draft"
 
 export function SectionView({
   section,
   ctx,
   allSections,
+  onSetCurrentSectionId,
   onChange,
   onRemove,
   onMove,
@@ -25,6 +28,9 @@ export function SectionView({
   section: Section
   ctx: Ctx
   allSections: Section[]
+  onSetCurrentSectionId: React.Dispatch<
+    React.SetStateAction<string | undefined>
+  >
   onChange: (fn: (s: Section) => Section) => void
   onRemove: () => void
   onMove: (dir: -1 | 1) => void
@@ -81,6 +87,8 @@ export function SectionView({
   return (
     <section
       id={sectionId(section.id)}
+      onMouseEnter={() => onSetCurrentSectionId(section.id)}
+      onMouseLeave={() => onSetCurrentSectionId(undefined)}
       className="relative scroll-mt-6 rounded-xl border border-border p-5"
     >
       <span className="absolute -top-2.5 bg-background px-3 text-sm text-muted-foreground">
@@ -97,12 +105,7 @@ export function SectionView({
         )}
       >
         <div className="flex items-center gap-2">
-          <input
-            value={section.title}
-            onChange={(e) => onChange((s) => ({ ...s, title: e.target.value }))}
-            className="min-w-0 flex-1 bg-transparent text-2xl font-semibold tracking-tight outline-none"
-            placeholder="Section title"
-          />
+          <SectionTitleInput onChange={onChange} title={section.title} />
 
           <Button
             variant="ghost"
@@ -151,15 +154,10 @@ export function SectionView({
         )}
       </div>
 
-      <Textarea
-        value={section.description}
-        onChange={(e) =>
-          onChange((b) => ({ ...b, description: e.target.value }))
-        }
-        placeholder="Write an intro..."
-        className="mb-4 min-h-18 resize-none border-transparent bg-transparent leading-relaxed text-muted-foreground focus-visible:border-border focus-visible:ring-0"
+      <SectionDescriptionInput
+        description={section.description}
+        onChange={onChange}
       />
-
       <div className="space-y-4">
         {section.containers.map((c, i) => (
           <ContainerView
@@ -212,5 +210,52 @@ export function SectionView({
         </Button>
       </div>
     </section>
+  )
+}
+
+function SectionTitleInput({
+  title,
+  onChange,
+}: {
+  title: string
+  onChange: (fn: (s: Section) => Section) => void
+}) {
+  const draft = useLocalDraft(title, (value) =>
+    onChange((s) => ({ ...s, title: value }))
+  )
+
+  return (
+    <input
+      value={draft.value}
+      onBlur={draft.onBlur}
+      onChange={(e) => draft.onChange(e.target.value)}
+      className="min-w-0 flex-1 bg-transparent text-2xl font-semibold tracking-tight outline-none"
+      placeholder="Section title"
+    />
+  )
+}
+
+function SectionDescriptionInput({
+  description,
+  onChange,
+}: {
+  description: string | undefined
+  onChange: (fn: (s: Section) => Section) => void
+}) {
+  const draft = useLocalDraft(description, (value) =>
+    onChange((s) => ({ ...s, description: value }))
+  )
+
+  const ref = useEditorInput<HTMLTextAreaElement>()
+
+  return (
+    <Textarea
+      value={draft.value}
+      onBlur={draft.onBlur}
+      ref={ref}
+      onChange={(e) => draft.onChange(e.target.value)}
+      placeholder="Write an intro..."
+      className="mb-4 min-h-18 resize-none border-transparent bg-transparent leading-relaxed text-muted-foreground focus-visible:border-border focus-visible:ring-0"
+    />
   )
 }

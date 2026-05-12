@@ -136,3 +136,30 @@
 .scrollbar-hidden::-webkit-scrollbar {
   display: none; /* Chrome / Safari / Opera */
 }
+
+/* The "slim" scrollbar class */
+.scrollbar-slim {
+  /* Firefox support */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-accent);
+}
+
+/* Chrome, Edge, and Safari support */
+.scrollbar-slim::-webkit-scrollbar {
+  width: 6px; /* Width of the vertical scrollbar */
+  height: 6px; /* Height of the horizontal scrollbar */
+}
+
+.scrollbar-slim::-webkit-scrollbar-track {
+  background: transparent; /* Keep the track invisible for a "floating" look */
+}
+
+.scrollbar-slim::-webkit-scrollbar-thumb {
+  background-color: var(--color-accent-foreground);
+  border-radius: 20px;
+  border: 1px solid transparent; /* Creates padding around the thumb */
+}
+
+.scrollbar-slim::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-accent-foreground); /* Darken on hover */
+}

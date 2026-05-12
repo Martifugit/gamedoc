@@ -2,11 +2,11 @@ export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
 export type HeadingLevelCssString = "h1" | "h2" | "h3" | "h4" | "h5" | "h6"
 
 export const HEADING_SIZE_BY_LEVEL: Record<HeadingLevel, string> = {
-  1: "text-4xl font-bold",
-  2: "text-3xl font-semibold",
-  3: "text-2xl font-semibold",
-  4: "text-xl font-medium",
-  5: "text-lg font-medium",
+  1: "text-3xl font-bold",
+  2: "text-2xl font-semibold",
+  3: "text-xl font-semibold",
+  4: "text-lg font-medium",
+  5: "text-base font-medium",
   6: "text-base font-medium",
 }
 
@@ -40,6 +40,8 @@ export const HEADING_LEVELS: {
   },
 ] as const
 
+export type Variable = { id: string; name: string; value: string }
+
 export type ParagraphBlock = { id: string; type: "paragraph"; text: string }
 export type ListBlock = {
   id: string
@@ -68,8 +70,6 @@ export type Container = {
   blocks: Block[]
   keyValues?: KeyValueSet[]
 }
-
-export type Variable = { id: string; name: string; value: string }
 
 export type Section = {
   id: string

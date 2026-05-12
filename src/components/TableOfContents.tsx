@@ -3,6 +3,7 @@ import { Search, GripVertical } from "lucide-react"
 import { Input } from "./ui/input"
 import { cn, headingId, sectionId } from "@/lib/utils"
 import type { GameDoc } from "@/lib/gamedoc-types"
+import { ScrollArea } from "./ui/scroll-area"
 
 type FlatItem =
   | { type: "section"; id: string; label: string; si: number }
@@ -170,134 +171,136 @@ export function TableOfContents({
           Sections ({total})
         </p>
       </div>
-      <div className="flex items-center gap-1">
-        <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search sections…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="rounded-md bg-transparent! pl-8"
-          />
-        </div>
+      <div className="relative">
+        <Search className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search sections…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="rounded-md bg-transparent! pl-8"
+        />
       </div>
 
-      <nav className="flex-1 overflow-y-auto text-sm">
-        <p className="px-2 pb-2 text-xs text-muted-foreground">
-          Table of contents
-        </p>
+      <nav className="flex min-h-0 flex-1 overflow-hidden text-sm">
+        <ScrollArea className="min-h-0 flex-1 pr-1">
+          <p className="px-2 pb-2 text-xs text-muted-foreground">
+            Table of contents
+          </p>
 
-        {q ? (
-          <ul className="space-y-0.5">
-            {doc.sections.map((s) => {
-              const childMatches = s.containers.filter((c) => matches(c.title))
-              const showSection = matches(s.title) || childMatches.length > 0
-              if (!showSection) return null
-              return (
-                <li key={s.id} className="group">
-                  <a
-                    href={`#${sectionId(s.id)}`}
-                    className="block truncate rounded px-2 py-1.5 font-medium hover:bg-accent focus-visible:bg-accent/40 focus-visible:outline-0"
-                    title={s.title}
-                  >
-                    {s.title || "Untitled"}
-                  </a>
-                  {childMatches.length > 0 && (
-                    <ul className="space-y-0.5">
-                      {childMatches.map((c) => (
-                        <li key={c.id}>
-                          <a
-                            href={`#${headingId(s.id, c.id)}`}
-                            title={c.title}
-                            className="flex items-center truncate rounded px-2 py-1 text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:bg-accent/40 focus-visible:outline-0"
-                          >
-                            <div
-                              className="mr-1.5 flex shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
-                              style={{ width: `${(c.level - 1) * 16}px` }}
+          {q ? (
+            <ul className="space-y-0.5">
+              {doc.sections.map((s) => {
+                const childMatches = s.containers.filter((c) =>
+                  matches(c.title)
+                )
+                const showSection = matches(s.title) || childMatches.length > 0
+                if (!showSection) return null
+                return (
+                  <li key={s.id} className="group">
+                    <a
+                      href={`#${sectionId(s.id)}`}
+                      className="block truncate rounded px-2 py-1.5 font-medium hover:bg-accent focus-visible:bg-accent/40 focus-visible:outline-0"
+                      title={s.title}
+                    >
+                      {s.title || "Untitled"}
+                    </a>
+                    {childMatches.length > 0 && (
+                      <ul className="space-y-0.5">
+                        {childMatches.map((c) => (
+                          <li key={c.id}>
+                            <a
+                              href={`#${headingId(s.id, c.id)}`}
+                              title={c.title}
+                              className="flex items-center truncate rounded px-2 py-1 text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:bg-accent/40 focus-visible:outline-0"
                             >
-                              {renderIndentationDots(c.level)}
-                            </div>
-                            <span className="truncate">
-                              {c.title || "Untitled"}
-                            </span>
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        ) : (
-          <div>
-            {flat.map((item, idx) => (
-              <div key={item.id}>
-                <div
-                  className={cn(
-                    "mx-2 h-0.5 rounded-full bg-primary transition-opacity",
-                    dropIdx === idx ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                <div
-                  ref={(el) => {
-                    itemRefs.current[idx] = el
-                  }}
-                  className={cn(
-                    "group flex items-center gap-1 rounded",
-                    item.type === "container" && "pl-3",
-                    dragIdx === idx && "opacity-30"
-                  )}
-                >
-                  {item.type === "section" ? (
-                    <a
-                      href={`#${sectionId(item.id)}`}
-                      title={item.label}
-                      className={cn(
-                        "min-w-0 flex-1 truncate rounded px-2 py-1.5 font-medium hover:bg-accent focus-visible:bg-accent/40 focus-visible:outline-0",
-                        dragIdx !== null && "pointer-events-none"
-                      )}
-                    >
-                      {item.label || "Untitled"}
-                    </a>
-                  ) : (
-                    <a
-                      href={`#${headingId(flat.find((f) => f.si === item.si && f.type === "section")!.id, item.id)}`}
-                      title={item.label}
-                      className={cn(
-                        "flex min-w-0 flex-1 items-center truncate rounded py-1 pr-2 text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:bg-accent/40 focus-visible:outline-0",
-                        dragIdx !== null && "pointer-events-none"
-                      )}
-                    >
-                      <div
-                        className="mr-1.5 flex shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
-                        style={{ width: `${(item.level - 1) * 16}px` }}
-                      >
-                        {renderIndentationDots(item.level)}
-                      </div>
-                      <span className="truncate">
-                        {item.label || "Untitled"}
-                      </span>
-                    </a>
-                  )}
+                              <div
+                                className="mr-1.5 flex shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                                style={{ width: `${(c.level - 1) * 16}px` }}
+                              >
+                                {renderIndentationDots(c.level)}
+                              </div>
+                              <span className="truncate">
+                                {c.title || "Untitled"}
+                              </span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <div>
+              {flat.map((item, idx) => (
+                <div key={item.id}>
                   <div
-                    onPointerDown={(e) => onPointerDown(e, idx)}
-                    className="cursor-grab touch-none p-1 opacity-0 group-hover:opacity-100 active:cursor-grabbing"
-                    aria-label="Drag to reorder"
+                    className={cn(
+                      "mx-2 h-0.5 rounded-full bg-primary transition-opacity",
+                      dropIdx === idx ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <div
+                    ref={(el) => {
+                      itemRefs.current[idx] = el
+                    }}
+                    className={cn(
+                      "group flex items-center gap-1 rounded",
+                      item.type === "container" && "pl-3",
+                      dragIdx === idx && "opacity-30"
+                    )}
                   >
-                    <GripVertical className="h-4 w-4 text-muted-foreground/60" />
+                    {item.type === "section" ? (
+                      <a
+                        href={`#${sectionId(item.id)}`}
+                        title={item.label}
+                        className={cn(
+                          "min-w-0 flex-1 truncate rounded px-2 py-1.5 font-medium hover:bg-accent focus-visible:bg-accent/40 focus-visible:outline-0",
+                          dragIdx !== null && "pointer-events-none"
+                        )}
+                      >
+                        {item.label || "Untitled"}
+                      </a>
+                    ) : (
+                      <a
+                        href={`#${headingId(flat.find((f) => f.si === item.si && f.type === "section")!.id, item.id)}`}
+                        title={item.label}
+                        className={cn(
+                          "flex min-w-0 flex-1 items-center truncate rounded py-1 pr-2 text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:bg-accent/40 focus-visible:outline-0",
+                          dragIdx !== null && "pointer-events-none"
+                        )}
+                      >
+                        <div
+                          className="mr-1.5 flex shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                          style={{ width: `${(item.level - 1) * 16}px` }}
+                        >
+                          {renderIndentationDots(item.level)}
+                        </div>
+                        <span className="truncate">
+                          {item.label || "Untitled"}
+                        </span>
+                      </a>
+                    )}
+                    <div
+                      onPointerDown={(e) => onPointerDown(e, idx)}
+                      className="cursor-grab touch-none p-1 opacity-0 group-hover:opacity-100 active:cursor-grabbing"
+                      aria-label="Drag to reorder"
+                    >
+                      <GripVertical className="h-4 w-4 text-muted-foreground/60" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            <div
-              className={cn(
-                "mx-2 h-0.5 rounded-full bg-primary transition-opacity",
-                dropIdx === flat.length ? "opacity-100" : "opacity-0"
-              )}
-            />
-          </div>
-        )}
+              ))}
+              <div
+                className={cn(
+                  "mx-2 h-0.5 rounded-full bg-primary transition-opacity",
+                  dropIdx === flat.length ? "opacity-100" : "opacity-0"
+                )}
+              />
+            </div>
+          )}
+        </ScrollArea>
       </nav>
     </aside>
   )

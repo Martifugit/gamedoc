@@ -7,20 +7,33 @@ import {
   newSection,
 } from "@/lib/gamedoc-types"
 import { Button } from "@/components/ui/button"
-import { Download, EyeIcon, FileText, Pencil, Plus, Upload } from "lucide-react"
+import {
+  Download,
+  EyeClosed,
+  EyeIcon,
+  FileJson,
+  FileText,
+  Pencil,
+  Plus,
+  Upload,
+} from "lucide-react"
 
-import { slug } from "@/lib/utils"
+import { cn, slug } from "@/lib/utils"
 import { buildHeadingsMap } from "@/lib/reference-syntax"
 import { TableOfContents } from "./TableOfContents"
 import { VariablesSidebar } from "./VariablesSidebar"
 import { SectionView } from "./SectionView"
 import { GameDocPreview } from "./Preview"
 import { exportToPdf } from "@/lib/pdf-export"
+import { ReferencesToolbar } from "./ReferencesToolbar"
+import { JSONPreview } from "@/JSONPreview"
 
 export function GameDocEditor() {
   const { doc, setDoc, loaded } = useGameDoc()
   const [query, setQuery] = useState("")
-  const [view, setView] = useState<"preview" | "editor">("editor")
+  const [view, setView] = useState<"preview" | "json-preview" | "editor">(
+    "editor"
+  )
   const fileRef = useRef<HTMLInputElement>(null)
 
   const update = useCallback(
@@ -92,6 +105,7 @@ export function GameDocEditor() {
           )}
 
           {view === "preview" && <GameDocPreview doc={doc} ctx={ctx} />}
+          {view === "json-preview" && <JSONPreview doc={doc} />}
 
           <div className="sticky bottom-0 z-20 h-32 bg-linear-to-t from-background to-transparent" />
 
@@ -110,20 +124,42 @@ export function GameDocEditor() {
             </div>
 
             <div className="flex items-end gap-4">
-              <Button
-                variant={"outline"}
-                onClick={() =>
-                  setView((prev) => (prev === "editor" ? "preview" : "editor"))
-                }
-                className="flex h-12 shrink-0 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium transition hover:opacity-90"
-              >
-                {view === "preview" ? (
+              <div className="flex items-center">
+                <Button
+                  variant={"outline"}
+                  onClick={() => setView("editor")}
+                  className={cn(
+                    "flex h-12 shrink-0 items-center gap-2 rounded-md px-4 text-sm font-medium transition hover:opacity-90",
+                    view === "editor" ? "" : "bg-primary"
+                  )}
+                >
                   <Pencil className="h-4 w-4" />
-                ) : (
-                  <EyeIcon className="h-4 w-4" />
-                )}
-              </Button>
-
+                </Button>
+                <Button
+                  variant={"outline"}
+                  onClick={() => setView("json-preview")}
+                  className={cn(
+                    "flex h-12 shrink-0 items-center gap-2 rounded-md px-4 text-sm font-medium transition hover:opacity-90",
+                    view === "json-preview" ? "" : "bg-primary"
+                  )}
+                >
+                  <FileJson className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={"outline"}
+                  onClick={() => setView("preview")}
+                  className={cn(
+                    "flex h-12 shrink-0 items-center gap-2 rounded-md px-4 text-sm font-medium transition hover:opacity-90",
+                    view === "preview" ? "" : "bg-primary"
+                  )}
+                >
+                  {view === "preview" ? (
+                    <EyeClosed className="h-4 w-4" />
+                  ) : (
+                    <EyeIcon className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
               <div className="flex flex-col gap-0">
                 <Button
                   variant={"outline"}
@@ -180,6 +216,8 @@ function CenterEditorView({
   ctx: Ctx
   update: (fn: (d: GameDoc) => GameDoc) => void
 }) {
+  const [curSecId, setCurSecId] = useState<string | undefined>(undefined)
+
   return (
     <>
       <header className="space-y-2">
@@ -203,6 +241,7 @@ function CenterEditorView({
 
       {doc.sections.map((section, sIdx) => (
         <SectionView
+          onSetCurrentSectionId={setCurSecId}
           key={section.id}
           section={section}
           ctx={ctx}
@@ -230,6 +269,11 @@ function CenterEditorView({
           }
         />
       ))}
+
+      <ReferencesToolbar
+        currentSectionId={curSecId}
+        allSections={doc.sections}
+      />
     </>
   )
 }

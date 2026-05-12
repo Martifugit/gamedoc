@@ -1,13 +1,14 @@
 import type { Ctx, ParagraphBlock, Section } from "@/lib/gamedoc-types"
 import { useRef, useState } from "react"
 import { Textarea } from "./ui/textarea"
-import { InsertLinkButton } from "./InsertLinkButton"
+import { InsertLinkPopover } from "./InsertLinkPopover"
 import { ReferencePicker } from "./ReferencePicker"
 import { VariablePicker } from "./VariablePicker"
 import { Button } from "./ui/button"
 import { flushSync } from "react-dom"
 import { formatVariableReference } from "@/lib/reference-syntax"
 import { RenderInline } from "./RenderInline"
+import { useEditorInput } from "@/hooks/use-editable-input"
 
 export function ParagraphView({
   block,
@@ -23,6 +24,8 @@ export function ParagraphView({
   const [showPreview, setShowPreview] = useState(false)
   const [localText, setLocalText] = useState(block.text)
   const taRef = useRef<HTMLTextAreaElement>(null)
+
+  const ref = useEditorInput<HTMLTextAreaElement>()
 
   const insert = (snippet: string) => {
     const ta = taRef.current
@@ -41,7 +44,8 @@ export function ParagraphView({
   return (
     <div className="space-y-2">
       <Textarea
-        ref={taRef}
+        // ref={taRef}
+        ref={ref}
         value={localText}
         onChange={(e) => setLocalText(e.currentTarget.value)}
         onBlur={() => onChange((b) => ({ ...b, text: localText }))}
@@ -50,7 +54,7 @@ export function ParagraphView({
       />
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <InsertLinkButton onInsert={insert} />
+          <InsertLinkPopover onInsert={insert} />
           <ReferencePicker
             allSections={allSections}
             onPick={(ref) => insert(ref)}

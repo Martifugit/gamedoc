@@ -1,78 +1,84 @@
-import { useState } from "react"
-import { Button } from "./ui/button"
-import { Input } from "./ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
+import { useMemo } from "react"
 import type { Section } from "@/lib/gamedoc-types"
 import { Variable as VarIcon } from "lucide-react"
+import { PickerPopover, type PickerItem } from "./picker-popover"
+import type { PickerHandle } from "@/lib/types"
+
+interface FlatVariable {
+  id: string
+  name: string
+  value: string
+  sectionId: string
+  sectionTitle: string
+  /** Lower score = shown first */
+  priority: number
+}
 
 export function VariablePicker({
   allSections,
+  ref,
   onPick,
+  currentSectionId,
 }: {
   allSections: Section[]
+  ref?: React.RefObject<PickerHandle | null>
   onPick: (id: string, name: string) => void
+  /** Id of the section the user is currently editing — boosts those variables */
+  currentSectionId?: string
 }) {
-  const [open, setOpen] = useState(false)
-  const [q, setQ] = useState("")
-  const ql = q.trim().toLowerCase()
-  const filtered = allSections
-    .map((s) => ({
-      s,
-      vars: s.variables.filter(
+  const allVars = useMemo<FlatVariable[]>(() => {
+    const list: FlatVariable[] = []
+    allSections.forEach((s, si) => {
+      s.variables.forEach((v, vi) => {
+        list.push({
+          id: v.id,
+          name: v.name,
+          value: v.value,
+          sectionId: s.id,
+          sectionTitle: s.title || "Untitled",
+          priority: s.id === currentSectionId ? vi : (si + 1) * 1000 + vi,
+        })
+      })
+    })
+    return list
+  }, [allSections, currentSectionId])
+
+  function getItems(query: string): PickerItem<{ id: string; name: string }>[] {
+    const q = query.trim().toLowerCase()
+    return allVars
+      .filter(
         (v) =>
-          !ql ||
-          v.name.toLowerCase().includes(ql) ||
-          v.value.toLowerCase().includes(ql) ||
-          s.title.toLowerCase().includes(ql)
-      ),
-    }))
-    .filter((g) => g.vars.length > 0)
+          !q ||
+          v.name.toLowerCase().includes(q) ||
+          v.value.toLowerCase().includes(q) ||
+          v.sectionTitle.toLowerCase().includes(q)
+      )
+      .sort((a, b) => a.priority - b.priority)
+      .map((v) => ({
+        id: v.id,
+        render: () => (
+          <>
+            <span className="mr-1 text-xs tracking-wide text-muted-foreground uppercase">
+              {v.sectionTitle} ›
+            </span>
+            <span className="font-medium">{v.name || "(unnamed)"}</span>{" "}
+            <span className="text-xs text-muted-foreground">= {v.value}</span>
+          </>
+        ),
+        onPick: () => ({ id: v.id, name: v.name }),
+      }))
+  }
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs">
-          <VarIcon className="h-3 w-3" /> Variable
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent side="bottom" align="start" className="w-80 p-2">
-        <Input
-          autoFocus
-          placeholder="Search variables…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="mb-2 h-8"
-        />
-        <div className="max-h-64 space-y-3 overflow-y-auto">
-          {filtered.length === 0 && (
-            <p className="px-2 py-3 text-center text-xs text-muted-foreground">
-              No variables match
-            </p>
-          )}
-          {filtered.map(({ s, vars }) => (
-            <div key={s.id}>
-              <p className="px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                {s.title || "Untitled"}
-              </p>
-              {vars.map((v) => (
-                <button
-                  key={v.id}
-                  className="block w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
-                  onClick={() => {
-                    onPick(v.id, v.name)
-                    setOpen(false)
-                    setQ("")
-                  }}
-                >
-                  <span className="font-medium">{v.name || "(unnamed)"}</span>{" "}
-                  <span className="text-xs text-muted-foreground">
-                    = {v.value}
-                  </span>
-                </button>
-              ))}
-            </div>
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
+    <PickerPopover
+      ref={ref}
+      icon={<VarIcon className="h-3 w-3" />}
+      label="Variable"
+      placeholder="Search variables…"
+      onSelect={({ id, name }) => onPick(id, name)}
+      getItems={getItems}
+      emptyMessage="No variables match"
+      width="w-80"
+    />
   )
 }
