@@ -407,11 +407,12 @@ function SyncModal({
         </DialogDescription>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="app-pw">Atlas Data API URL</Label>
+            <Label htmlFor="app-pw">Application Password</Label>
             <Input
               type="password"
               id="app-pw"
               placeholder="Enter pw..."
+              autoComplete="current-password"
               value={field}
               onChange={(e) => setField(e.target.value)}
             />

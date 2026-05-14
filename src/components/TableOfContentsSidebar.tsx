@@ -166,6 +166,20 @@ export function TableOfContentsSidebar({
     }
   }, [dragIdx, doc, onReorder, findDropTarget])
 
+  useEffect(() => {
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === "g" && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        e.preventDefault()
+        e.stopPropagation()
+        setOpen((p) => !p)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeydown, true)
+
+    return () => window.removeEventListener("keydown", handleKeydown, true)
+  }, [])
+
   return (
     <aside
       className={cn(
@@ -180,6 +194,7 @@ export function TableOfContentsSidebar({
             ? "pointer-events-none opacity-0 duration-0"
             : "opacity-100 delay-500"
         )}
+        title="(g)"
         onClick={() => setOpen(!open)}
         variant="ghost"
         size="icon-lg"
@@ -197,7 +212,12 @@ export function TableOfContentsSidebar({
           Sections ({total})
         </p>
 
-        <Button onClick={() => setOpen(!open)} variant="ghost" size="icon">
+        <Button
+          title="(g)"
+          onClick={() => setOpen(!open)}
+          variant="ghost"
+          size="icon"
+        >
           <SidebarClose className={open ? "rotate-0" : "rotate-180"} />
         </Button>
       </div>

@@ -4,8 +4,6 @@ import { MongoClient } from "mongodb"
 
 const uri = process.env.MONGO_URI!
 const pw = process.env.APP_PW
-// const uri =
-// "mongodb+srv://ibux_db_user:80908090Maf@hobby.nsmnzgj.mongodb.net/?appName=hobby"
 const client = new MongoClient(uri)
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -22,14 +20,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const collection = db.collection("docs")
 
     if (req.method === "GET") {
-      const doc = await collection.findOne({ _id: "main" as any })
+      const doc = await collection.findOne({})
       return res.status(200).json(doc)
     }
 
     if (req.method === "POST") {
-      const newDoc = req.body
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { _id, ...newDoc } = req.body
       await collection.replaceOne(
-        { _id: "main" as any },
+        {},
         { ...newDoc, updatedAt: Date.now() },
         { upsert: true }
       )

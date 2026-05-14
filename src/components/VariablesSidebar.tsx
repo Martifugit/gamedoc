@@ -26,20 +26,22 @@ export function VariablesSidebar({
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
-      if (e.code === "b" && e.ctrlKey) {
+      if (e.key === "g" && e.ctrlKey) {
+        e.preventDefault()
+        e.stopPropagation()
         setOpen((p) => !p)
       }
     }
 
-    window.addEventListener("keydown", handleKeydown)
+    window.addEventListener("keydown", handleKeydown, true)
 
-    return () => window.removeEventListener("keydown", handleKeydown)
+    return () => window.removeEventListener("keydown", handleKeydown, true)
   }, [])
 
   return (
     <aside
       className={cn(
-        "sticky top-0 hidden h-screen shrink-0 flex-col gap-3 overflow-hidden border-l border-border/50 px-4 py-6 transition-[width] lg:flex",
+        "sticky top-0 flex h-screen shrink-0 flex-col gap-3 overflow-hidden border-l border-border/50 px-4 py-6 transition-[width]",
         open ? "w-72" : "w-12"
       )}
     >
@@ -53,6 +55,7 @@ export function VariablesSidebar({
         onClick={() => setOpen(!open)}
         variant="ghost"
         size="icon-lg"
+        title="(ctrl+g)"
       >
         <SidebarClose className={open ? "rotate-180" : "rotate-0"} />
       </Button>
@@ -63,7 +66,12 @@ export function VariablesSidebar({
           open ? "opacity-100" : "pointer-events-none opacity-0"
         )}
       >
-        <Button onClick={() => setOpen(!open)} variant="ghost" size="icon">
+        <Button
+          title="(ctrl+g)"
+          onClick={() => setOpen(!open)}
+          variant="ghost"
+          size="icon"
+        >
           <SidebarClose className={open ? "rotate-180" : "rotate-0"} />
         </Button>
 
