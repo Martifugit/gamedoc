@@ -82,6 +82,7 @@ export type Section = {
 export type GameDoc = {
   title: string
   sections: Section[]
+  comments: Comments
   updatedAt: number
 }
 
@@ -90,6 +91,7 @@ export const uid = () => Math.random().toString(36).slice(2, 10)
 export const emptyDoc = (): GameDoc => ({
   title: "Untitled Game Doc",
   sections: [],
+  comments: emptyComments(),
   updatedAt: Date.now(),
 })
 
@@ -109,3 +111,44 @@ export const newContainer = (): Container => ({
 })
 
 export type Ctx = { headings: Map<string, string>; vars: Map<string, Variable> }
+
+export type EditorView = "preview" | "editor" /* | "json-preview"  */
+
+export type SyncStatus =
+  | { state: "idle" }
+  | { state: "loading" }
+  | { state: "saving" }
+  | { state: "success"; message: string }
+  | { state: "error"; message: string }
+
+// ── Comments ────────────────────────────────────────────────────────────────
+
+export type CommentScope =
+  | { kind: "global" }
+  | { kind: "section"; sectionId: string }
+  | { kind: "container"; sectionId: string; containerId: string }
+  | { kind: "block"; sectionId: string; containerId: string; blockId: string }
+
+export interface Comment {
+  id: string
+  parentId: string | null // null = top-level, string = reply to that comment id
+  scope: CommentScope
+  author: string
+  body: string
+  createdAt: number
+  resolved: boolean
+  /**
+   * Author names who have read this comment. The original author is implicitly
+   * considered to have read it, so this list does not need to include them.
+   * Undefined === nobody-but-the-author has read it yet.
+   */
+  readBy?: string[]
+}
+
+export interface Comments {
+  items: Comment[]
+}
+
+export function emptyComments(): Comments {
+  return { items: [] }
+}

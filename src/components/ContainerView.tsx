@@ -33,6 +33,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
+import { CommentsPopover } from "./comments"
+import { useScopeHighlight } from "@/hooks/use-scope-highlight"
 
 export function ContainerView({
   container,
@@ -64,6 +66,10 @@ export function ContainerView({
     highlightMoved,
     triggerMove,
   } = useMoveHighlight<HTMLDivElement>()
+  const { highlight: highlightComment } = useScopeHighlight({
+    kind: "section",
+    sectionId: secId,
+  })
 
   const handlePaste = () => {
     if (!item) return
@@ -88,8 +94,8 @@ export function ContainerView({
       ref={containerRef}
       id={headingId(secId, container.id)}
       className={cn(
-        "group relative scroll-mt-26 rounded-lg border p-4 transition-colors",
-        highlightMoved ? "border-blue-500" : "border-border/60"
+        "group relative scroll-mt-26 rounded-lg border border-border/60 p-4 ring-1 ring-transparent transition-colors",
+        (highlightComment || highlightMoved) && "ring-blue-500"
       )}
     >
       <span className="absolute -top-2 bg-background px-3 text-xs text-muted-foreground">
@@ -100,7 +106,7 @@ export function ContainerView({
           value={container.level}
           onChange={(v) => onChange((c) => ({ ...c, level: v }))}
         />
-        <HeadingTag className={`min-w-0 flex-1 text-2xl`}>
+        <HeadingTag className={`min-w-0 flex-1`}>
           <ContainerTitleInput onChange={onChange} title={container.title} />
         </HeadingTag>
 
@@ -118,6 +124,8 @@ export function ContainerView({
       <div className="space-y-3">
         {container.blocks.map((b, i) => (
           <BlockView
+            sectionId={secId}
+            containerId={container.id}
             key={b.id}
             block={b}
             ctx={ctx}
@@ -229,7 +237,7 @@ function ContainerTitleInput({
     onChange((s) => ({ ...s, title: value }))
   )
   return (
-    <div className="group relative [&:focus-within_.edit-icon]:opacity-0">
+    <div className="group relative mb-px [&:focus-within_.edit-icon]:opacity-0">
       <input
         value={draft.value}
         onBlur={draft.onBlur}
@@ -239,7 +247,7 @@ function ContainerTitleInput({
         title={title}
         spellCheck={false}
       />
-      <Edit className="edit-icon absolute top-1/2 right-1 h-4 w-4 -translate-y-1/2 opacity-0 group-hover:opacity-100" />
+      <Edit className="edit-icon pointer-events-none absolute top-1/2 right-1 h-4 w-4 -translate-y-1/2 opacity-0 group-hover:opacity-100" />
     </div>
   )
 }
@@ -263,19 +271,6 @@ export function ContainerActions({
   onDuplicate,
   onRemove,
 }: ContainerActionsProps) {
-  const deleteAction = (
-    <ConfirmDelete
-      title="Delete this container?"
-      description={`"${container.title || "Untitled"}" and its contents will be removed.`}
-      onConfirm={onRemove}
-      trigger={
-        <Button variant="ghost" size="icon" title="Delete container">
-          <Trash2 className="h-4 w-4 text-destructive" />
-        </Button>
-      }
-    />
-  )
-
   return (
     <div className="flex items-center gap-0.5">
       <RefCopyButton
@@ -307,11 +302,28 @@ export function ContainerActions({
           size="icon"
           onClick={onDuplicate}
           title="Duplicate container"
-          className="transition-opacity group-hover:opacity-100 md:opacity-0"
+          className="h-8.5 w-8.5 transition-opacity group-hover:opacity-100 md:opacity-0"
         >
           <Copy className="h-4 w-4" />
         </Button>
-        {deleteAction}
+        <CommentsPopover
+          triggerClassName="h-8.5 w-8.5"
+          scope={{
+            kind: "container",
+            sectionId: secId,
+            containerId: container.id,
+          }}
+        />
+        <ConfirmDelete
+          title="Delete this container?"
+          description={`"${container.title || "Untitled"}" and its contents will be removed.`}
+          onConfirm={onRemove}
+          trigger={
+            <Button variant="ghost" size="icon" title="Delete container">
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          }
+        />
       </div>
 
       {/* Mobile */}

@@ -8,6 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export const headingId = (sectionId: string, containerId: string) =>
   `h-${sectionId}-${containerId}`
 export const sectionId = (s: string) => `s-${s}`
+export const blockId = (id: string) => `b-${id}`
 
 export function slug(s: string) {
   return s

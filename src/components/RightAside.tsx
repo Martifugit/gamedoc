@@ -59,10 +59,16 @@ export function RightAside({
     <SidebarShell
       side="right"
       title={`Variables (${total})`}
-      shortcutLabel="ctrl+g"
+      shortcutLabel="alt+q"
       searchPlaceholder="Search variables…"
       searchQuery={q}
       onSearchChange={setQ}
+      onOpenChange={(open) => {
+        if (!open) {
+          setIsEditingSectionVars("")
+          setSelectedVarIds(new Set())
+        }
+      }}
     >
       <div className="space-y-4">
         {(!doc || doc.sections.length === 0) && (

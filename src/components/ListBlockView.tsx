@@ -11,16 +11,22 @@ import { Input } from "./ui/input"
 import { RenderInline } from "./RenderInline"
 import { useLocalArrayDraft, useLocalDraft } from "@/hooks/use-local-draft"
 import { useEditorInput } from "@/hooks/use-editable-input"
+import { blockId, cn } from "@/lib/utils"
+import { useScopeHighlight } from "@/hooks/use-scope-highlight"
 
 export function ListBlockView({
   block,
   ctx,
   allSections,
+  containerId,
+  sectionId,
   onChange,
 }: {
   block: ListBlock
   ctx: Ctx
   allSections: Section[]
+  containerId: string
+  sectionId: string
   onChange: (fn: (b: ListBlock) => ListBlock) => void
 }) {
   const headingDraft = useLocalDraft(block.heading, (val) =>
@@ -34,6 +40,16 @@ export function ListBlockView({
   const [showPreview, setShowPreview] = useState(false)
   const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  const { highlight: highlightComment } = useScopeHighlight(
+    {
+      kind: "block",
+      blockId: block.id,
+      containerId,
+      sectionId,
+    },
+    2000
+  )
 
   // Focus the active input when it changes
   useEffect(() => {
@@ -102,7 +118,13 @@ export function ListBlockView({
   }
 
   return (
-    <div className="group/list-block space-y-2">
+    <div
+      id={blockId(block.id)}
+      className={cn(
+        "group/list-block min-h-28 scroll-mt-26 space-y-2 rounded-md ring-1 ring-transparent",
+        highlightComment && "ring-blue-500"
+      )}
+    >
       <div className="flex items-center gap-1 pr-12">
         <HeadingSelect
           value={block.headingLevel ?? 5}
@@ -159,7 +181,7 @@ export function ListBlockView({
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 pr-12">
         <div className="flex items-center gap-2">
           <Button
             size="sm"

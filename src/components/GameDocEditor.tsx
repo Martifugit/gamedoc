@@ -2,13 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useGameDoc } from "@/lib/gamedoc-store"
 import {
   type Ctx,
+  type EditorView,
   type GameDoc,
   type Variable,
   newSection,
 } from "@/lib/gamedoc-types"
 import { Edit, RotateCcw } from "lucide-react"
 
-import { slug } from "@/lib/utils"
+import { headingId, sectionId, slug } from "@/lib/utils"
 import { buildHeadingsMap } from "@/lib/reference-syntax"
 import { SectionView } from "./SectionView"
 import { GameDocPreview } from "./Preview"
@@ -22,9 +23,8 @@ import { SyncAuthModal } from "./SyncAuthModal"
 import { LeftAside } from "./LeftAside"
 import { RightAside } from "./RightAside"
 import { useEditorSettings } from "@/hooks/use-editor-settings"
+import { CommentsHost, CommentsModal } from "./comments"
 // import { GameDocViewer } from "./GameDocViewer"
-
-export type EditorView = "preview" | "editor" /* | "json-preview"  */
 
 export function GameDocEditor() {
   const storageKey = "is_new_project"
@@ -41,6 +41,8 @@ export function GameDocEditor() {
     const saved = localStorage.getItem(storageKey)
     return saved === null ? true : saved === "true"
   })
+  const [targetScrollId, setTargetScrollId] = useState<string | null>(null)
+  const [commentsOpen, setCommentsOpen] = useState(false)
 
   const fileRef = useRef<HTMLInputElement>(null)
   const didInitialLoad = useRef(false)
@@ -144,6 +146,70 @@ export function GameDocEditor() {
     }
   }
 
+  // ── Set View and scroll to the correct heading ───────────────────────────────────────────────────────────
+
+  const handleSetView = useCallback(
+    (nextView: EditorView) => {
+      if (!doc) {
+        setView(nextView)
+        return
+      }
+
+      // Gather all possible element IDs that could exist in either view
+      const ids: string[] = []
+      doc.sections.forEach((s) => {
+        ids.push(sectionId(s.id))
+        s.containers.forEach((c) => {
+          ids.push(headingId(s.id, c.id))
+        })
+      })
+
+      // Find the ID closest to the top of the viewport
+      let closestId: string | null = null
+      let minDistance = Infinity
+      const stickyHeaderOffset = 100 // Matches your sticky navigation headers
+
+      for (const id of ids) {
+        const el = document.getElementById(id)
+        if (el) {
+          const rect = el.getBoundingClientRect()
+          // Compute distance from our top-of-page target threshold
+          const distance = Math.abs(rect.top - stickyHeaderOffset)
+
+          if (distance < minDistance) {
+            minDistance = distance
+            closestId = id
+          }
+        }
+      }
+
+      // Save the target ID if one was found, then change views
+      if (closestId) {
+        setTargetScrollId(closestId)
+      }
+      setView(nextView)
+    },
+    [doc]
+  )
+
+  useEffect(() => {
+    if (!targetScrollId) return
+
+    // A small timeout ensures the new view has finished mounting into the DOM
+    const timer = setTimeout(() => {
+      const el = document.getElementById(targetScrollId)
+      if (el) {
+        // "auto" provides an instant snap alignment matching the tab toggle.
+        // Change to "smooth" if you prefer an animated scroll transition.
+        el.scrollIntoView({ block: "start", behavior: "auto" })
+      }
+      // Reset tracker so it doesn't run again unexpectedly
+      setTargetScrollId(null)
+    }, 50)
+
+    return () => clearTimeout(timer)
+  }, [view, targetScrollId])
+
   // ── Early returns ───────────────────────────────────────────────────────────
 
   if (isNewProject === null) {
@@ -184,55 +250,71 @@ export function GameDocEditor() {
           onReorder={(next) => update(() => next)}
         />
 
-        <main className="relative min-w-0 flex-1 space-y-8">
-          <div className="sticky top-0 z-20 h-0 w-full">
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-32"
-              style={{
-                maskImage:
-                  "linear-gradient(to bottom, black 0%, black 10%, transparent 100%)",
-                WebkitMaskImage:
-                  "linear-gradient(to bottom, black 0%, black 10%, transparent 100%)",
-                background: "var(--background)",
-              }}
-            />
-          </div>
+        <CommentsHost
+          doc={doc}
+          onUpdateComments={(comments) => update((d) => ({ ...d, comments }))}
+          credentials={credentials}
+          saveCredentials={saveCredentials}
+          onBeforeNavigate={() => setCommentsOpen(false)}
+        >
+          <main className="relative min-w-0 flex-1 space-y-8">
+            <div className="sticky top-0 z-20 h-0 w-full">
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 h-32"
+                style={{
+                  maskImage:
+                    "linear-gradient(to bottom, black 0%, black 10%, transparent 100%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to bottom, black 0%, black 10%, transparent 100%)",
+                  background: "var(--background)",
+                }}
+              />
+            </div>
 
-          {doc && view === "editor" && (
-            <CenterEditorView ctx={ctx} doc={doc} update={update} />
+            {doc && view === "editor" && (
+              <CenterEditorView ctx={ctx} doc={doc} update={update} />
+            )}
+            {doc && view === "preview" && (
+              <GameDocPreview doc={doc} ctx={ctx} />
+            )}
+            {/* {view === "json-preview" && <GameDocViewer doc={doc} />} */}
+
+            {/* Sticky toolbar */}
+            <EditorToolbar
+              isBusy={isBusy}
+              ctx={ctx}
+              doc={doc}
+              fileRef={fileRef}
+              credentials={credentials}
+              syncStatus={syncStatus}
+              view={view}
+              onExport={onExport}
+              onQuickLoad={onQuickLoad}
+              onQuickSave={onQuickSave}
+              onSetView={handleSetView}
+              onAddSection={addSection}
+              onOpenSettings={() => setSettingsOpen(true)}
+              onToggleCommentsOpen={() => setCommentsOpen(!commentsOpen)}
+            />
+
+            <div className="sticky bottom-0 z-20 h-0 w-full">
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
+                style={{
+                  maskImage:
+                    "linear-gradient(to top, black 0%, black 10%, transparent 100%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to top, black 0%, black 10%, transparent 100%)",
+                  background: "var(--background)",
+                }}
+              />
+            </div>
+          </main>
+
+          {doc && (
+            <CommentsModal open={commentsOpen} onOpenChange={setCommentsOpen} />
           )}
-          {doc && view === "preview" && <GameDocPreview doc={doc} ctx={ctx} />}
-          {/* {view === "json-preview" && <GameDocViewer doc={doc} />} */}
-
-          {/* Sticky toolbar */}
-          <EditorToolbar
-            isBusy={isBusy}
-            ctx={ctx}
-            doc={doc}
-            fileRef={fileRef}
-            syncStatus={syncStatus}
-            view={view}
-            onExport={onExport}
-            onQuickLoad={onQuickLoad}
-            onQuickSave={onQuickSave}
-            onSetView={setView}
-            onAddSection={addSection}
-            onOpenSettings={() => setSettingsOpen(true)}
-          />
-
-          <div className="sticky bottom-0 z-20 h-0 w-full">
-            <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
-              style={{
-                maskImage:
-                  "linear-gradient(to top, black 0%, black 10%, transparent 100%)",
-                WebkitMaskImage:
-                  "linear-gradient(to top, black 0%, black 10%, transparent 100%)",
-                background: "var(--background)",
-              }}
-            />
-          </div>
-        </main>
+        </CommentsHost>
 
         <RightAside
           doc={doc}

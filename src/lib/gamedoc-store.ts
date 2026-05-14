@@ -1,6 +1,6 @@
 import { get, set } from "idb-keyval"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { emptyDoc, type GameDoc } from "./gamedoc-types"
+import { emptyComments, emptyDoc, type GameDoc } from "./gamedoc-types"
 
 const KEY = "gamedoc:v1"
 
@@ -14,6 +14,7 @@ export function useGameDoc() {
     setDoc({
       title: doc?.title ?? "New Document",
       sections: [],
+      comments: emptyComments(),
       updatedAt: Date.now(),
     })
     localStorage.removeItem(KEY)

@@ -13,17 +13,22 @@ import { ListBlockView } from "./ListBlockView"
 import { TableBlockView } from "./TableBlockView"
 import { Button } from "./ui/button"
 import { CopyButton } from "./copy-button"
+import { CommentsPopover } from "./comments"
 
 export function BlockView({
   block,
   ctx,
   allSections,
+  sectionId,
+  containerId,
   onChange,
   onRemove,
 }: {
   block: Block
   ctx: Ctx
   allSections: Section[]
+  sectionId: string
+  containerId: string
   onChange: (fn: (b: Block) => Block) => void
   onRemove: () => void
 }) {
@@ -44,6 +49,15 @@ export function BlockView({
             </Button>
           }
         />
+        <CommentsPopover
+          triggerClassName="h-8.5 w-8.5"
+          scope={{
+            kind: "block",
+            sectionId: sectionId,
+            containerId: containerId,
+            blockId: block.id,
+          }}
+        />
         <CopyButton
           item={{
             data: block,
@@ -57,6 +71,8 @@ export function BlockView({
           <ParagraphView
             block={block}
             ctx={ctx}
+            containerId={containerId}
+            sectionId={sectionId}
             allSections={allSections}
             onChange={(fn) => onChange((b) => fn(b as ParagraphBlock) as Block)}
           />
@@ -65,6 +81,8 @@ export function BlockView({
           <ListBlockView
             block={block}
             allSections={allSections}
+            containerId={containerId}
+            sectionId={sectionId}
             ctx={ctx}
             onChange={(fn) => onChange((b) => fn(b as ListBlock) as Block)}
           />
@@ -72,6 +90,8 @@ export function BlockView({
         {block.type === "table" && (
           <TableBlockView
             block={block}
+            containerId={containerId}
+            sectionId={sectionId}
             onChange={(fn) => onChange((b) => fn(b as TableBlock) as Block)}
           />
         )}

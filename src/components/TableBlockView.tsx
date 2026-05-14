@@ -11,18 +11,35 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table"
+import { blockId, cn } from "@/lib/utils"
+import { useScopeHighlight } from "@/hooks/use-scope-highlight"
 
 export function TableBlockView({
   block,
+  containerId,
+  sectionId,
   onChange,
 }: {
   block: TableBlock
+  containerId: string
+  sectionId: string
   onChange: (fn: (b: TableBlock) => TableBlock) => void
 }) {
   const [localBlock, setLocalBlock] = useState<TableBlock>(block)
   const debouncedBlock = useDebounce(localBlock, 300)
 
   const onChangeRef = useRef(onChange)
+
+  const { highlight: highlightComment } = useScopeHighlight(
+    {
+      kind: "block",
+      blockId: block.id,
+      containerId,
+      sectionId,
+    },
+    2000
+  )
+
   useEffect(() => {
     onChangeRef.current = onChange
   }, [onChange])
@@ -50,7 +67,13 @@ export function TableBlockView({
     }))
 
   return (
-    <div className="space-y-2 pr-8">
+    <div
+      id={blockId(block.id)}
+      className={cn(
+        "scroll-mt-22 space-y-2 rounded-md pr-8 ring-1 ring-transparent",
+        highlightComment && "ring-blue-500"
+      )}
+    >
       {/* Horizontally scrollable container with invisible scrollbar */}
       <div className="scrollbar-hidden overflow-x-auto rounded-md border">
         <Table scrollbarHidden className="min-w-max">

@@ -9,16 +9,22 @@ import { flushSync } from "react-dom"
 import { formatVariableReference } from "@/lib/reference-syntax"
 import { RenderInline } from "./RenderInline"
 import { useEditorInput } from "@/hooks/use-editable-input"
+import { blockId, cn } from "@/lib/utils"
+import { useScopeHighlight } from "@/hooks/use-scope-highlight"
 
 export function ParagraphView({
   block,
   ctx,
   allSections,
+  containerId,
+  sectionId,
   onChange,
 }: {
   block: ParagraphBlock
   ctx: Ctx
   allSections: Section[]
+  containerId: string
+  sectionId: string
   onChange: (fn: (b: ParagraphBlock) => ParagraphBlock) => void
 }) {
   const [showPreview, setShowPreview] = useState(false)
@@ -26,6 +32,16 @@ export function ParagraphView({
   const taRef = useRef<HTMLTextAreaElement>(null)
 
   const ref = useEditorInput<HTMLTextAreaElement>()
+
+  const { highlight: highlightComment } = useScopeHighlight(
+    {
+      kind: "block",
+      blockId: block.id,
+      containerId,
+      sectionId,
+    },
+    2000
+  )
 
   const insert = (snippet: string) => {
     const ta = taRef.current
@@ -42,7 +58,13 @@ export function ParagraphView({
   }
 
   return (
-    <div className="space-y-2 pr-8 md:pr-12">
+    <div
+      id={blockId(block.id)}
+      className={cn(
+        "scroll-mt-30 space-y-2 rounded-md pr-8 ring-1 ring-transparent md:pr-12",
+        highlightComment && "ring-blue-500"
+      )}
+    >
       <Textarea
         // ref={taRef}
         ref={ref}

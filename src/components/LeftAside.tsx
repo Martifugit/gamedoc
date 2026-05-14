@@ -165,7 +165,7 @@ export function LeftAside({
     <SidebarShell
       side="left"
       title={`Sections (${total})`}
-      shortcutLabel="alt+g"
+      shortcutLabel="ctrl+q"
       searchPlaceholder="Search sections…"
       searchQuery={query}
       onSearchChange={setQuery}

@@ -1,6 +1,4 @@
-import type { SyncStatus } from "@/hooks/use-sheet-sync"
-import type { EditorView } from "./GameDocEditor"
-import type { Ctx, GameDoc } from "@/lib/gamedoc-types"
+import type { Ctx, EditorView, GameDoc } from "@/lib/gamedoc-types"
 import { Button } from "./ui/button"
 import {
   AlertCircle,
@@ -11,6 +9,7 @@ import {
   FileDown,
   //   FileJson2,
   Loader2,
+  MessagesSquare,
   MoreVertical,
   Pencil,
   Plus,
@@ -28,6 +27,8 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 import { useCallback } from "react"
+import type { SyncStatus } from "@/hooks/use-db-sync"
+import { useAuth } from "@/hooks/use-auth"
 
 interface EditorToolbarProps {
   syncStatus: SyncStatus
@@ -36,12 +37,14 @@ interface EditorToolbarProps {
   isBusy: boolean
   doc: GameDoc | null
   ctx: Ctx | null
+  credentials: string | null
   onOpenSettings: () => void
   onAddSection: () => void
-  onSetView: React.Dispatch<React.SetStateAction<EditorView>>
+  onSetView: (view: EditorView) => void
   onExport: () => void
   onQuickLoad: () => Promise<void>
   onQuickSave: () => Promise<void>
+  onToggleCommentsOpen: () => void
 }
 
 export function EditorToolbar({
@@ -51,16 +54,20 @@ export function EditorToolbar({
   isBusy,
   doc,
   ctx,
+  credentials,
   onOpenSettings,
   onAddSection,
   onSetView,
   onQuickSave,
   onExport,
   onQuickLoad,
+  onToggleCommentsOpen,
 }: EditorToolbarProps) {
   const onUpload = useCallback(() => {
     fileRef.current?.click()
   }, [fileRef])
+
+  const authorized = useAuth(credentials)
 
   return (
     <div className="fixed inset-x-4 bottom-0 z-50 mx-auto flex max-w-200 md:sticky md:bottom-6 md:px-4">
@@ -136,11 +143,22 @@ export function EditorToolbar({
                     <Save />
                   ),
                 title: "Save to DB",
-                disabled: isBusy,
+                disabled: isBusy || !doc || !authorized,
                 onClick: onQuickSave,
               },
             ]}
           />
+
+          <Button
+            variant="outline"
+            size="default"
+            disabled={!doc}
+            title="Comments"
+            onClick={onToggleCommentsOpen}
+            className="flex h-full shrink-0 rounded-sm font-medium"
+          >
+            <MessagesSquare />
+          </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

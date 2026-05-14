@@ -23,6 +23,8 @@ import { useEditorInput } from "@/hooks/use-editable-input"
 import { useLocalDraft } from "@/hooks/use-local-draft"
 import { useMoveHighlight } from "@/hooks/use-move-highlight"
 import { useIsStuck } from "@/hooks/use-is-stuck"
+import { CommentsPopover } from "./comments"
+import { useScopeHighlight } from "@/hooks/use-scope-highlight"
 
 export function SectionView({
   section,
@@ -44,6 +46,13 @@ export function SectionView({
   onMove: (dir: -1 | 1) => void
 }) {
   const { ref: sectionRef, highlightMoved, triggerMove } = useMoveHighlight()
+  const { highlight: highlightComment } = useScopeHighlight(
+    {
+      kind: "section",
+      sectionId: section.id,
+    },
+    2000
+  )
 
   const duplicateContainer = (container: Container, index: number) => {
     const duplicatedContainer = {
@@ -90,8 +99,8 @@ export function SectionView({
       onMouseEnter={() => onSetCurrentSectionId(section.id)}
       onMouseLeave={() => onSetCurrentSectionId(undefined)}
       className={cn(
-        "relative scroll-mt-12 rounded-xl border px-6 pt-4 pb-6 transition-colors",
-        highlightMoved ? "border-blue-500" : "border-border"
+        "relative scroll-mt-12 rounded-xl border border-border px-6 pt-4 pb-6 ring-1 ring-transparent transition-colors",
+        (highlightMoved || highlightComment) && "ring-blue-500"
       )}
     >
       <span className="absolute -top-2.5 bg-background px-3 text-sm text-muted-foreground">
@@ -184,7 +193,7 @@ function SectionTitleInput({
         className="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 text-xl tracking-tight outline-none focus-visible:border-border md:text-2xl"
         placeholder="New Section Title..."
       />
-      <Edit className="edit-icon absolute top-1/2 right-1 h-4 w-4 -translate-y-1/2 opacity-0 group-hover:opacity-100" />
+      <Edit className="edit-icon pointer-events-none absolute top-1/2 right-1 h-4 w-4 -translate-y-1/2 opacity-0 group-hover:opacity-100" />
     </div>
   )
 }
@@ -279,6 +288,12 @@ function SectionHeader({
           >
             <ChevronRight className="rotate-90" />
           </Button>
+
+          <CommentsPopover
+            triggerClassName="h-10 w-10"
+            scope={{ kind: "section", sectionId: section.id }}
+          />
+
           <ConfirmDelete
             title="Delete this section?"
             description={`"${section.title || "Untitled"}" and all its containers and variables will be removed.`}

@@ -9,7 +9,7 @@ import {
   HEADING_SIZE_BY_LEVEL,
   type KeyValueSet,
 } from "@/lib/gamedoc-types"
-import { cn, sectionId, headingId } from "@/lib/utils"
+import { cn, sectionId, headingId, blockId as createBlockId } from "@/lib/utils"
 import type React from "react"
 import { RenderInline } from "./RenderInline"
 import ScrollProgressBar from "./scroll-progress"
@@ -30,9 +30,22 @@ const formatDate = (timestamp: number) => {
 }
 
 // Paragraph block renderer
-const ParagraphBlock = ({ text, ctx }: { text: string; ctx: Ctx }) => {
+const ParagraphBlock = ({
+  text,
+  ctx,
+  blockId,
+}: {
+  text: string
+  ctx: Ctx
+  containerId: string
+  sectionId: string
+  blockId: string
+}) => {
   return (
-    <div className="text-sm leading-relaxed text-pretty text-muted-foreground">
+    <div
+      id={createBlockId(blockId)}
+      className="scroll-mt-36 text-sm leading-relaxed text-pretty text-muted-foreground"
+    >
       <RenderInline text={text} ctx={ctx} />
     </div>
   )
@@ -43,7 +56,11 @@ const ListBlock = ({
   ordered,
   items,
   ctx,
+  blockId,
 }: {
+  containerId: string
+  sectionId: string
+  blockId: string
   ordered: boolean
   items: string[]
   ctx: Ctx
@@ -51,7 +68,11 @@ const ListBlock = ({
   const ListTag = ordered ? "ol" : "ul"
   return (
     <ListTag
-      className={cn("space-y-1 pl-6", ordered ? "list-decimal" : "list-disc")}
+      id={createBlockId(blockId)}
+      className={cn(
+        "scroll-mt-32 space-y-1 pl-6",
+        ordered ? "list-decimal" : "list-disc"
+      )}
     >
       {items.map((item, idx) => (
         <li key={idx} className="leading-relaxed text-foreground">
@@ -66,13 +87,20 @@ const TableBlock = ({
   headers,
   rows,
   ctx,
+  blockId,
 }: {
+  containerId: string
+  sectionId: string
+  blockId: string
   headers: string[]
   rows: string[][]
   ctx: Ctx
 }) => {
   return (
-    <div className="overflow-x-auto rounded border border-border/70">
+    <div
+      id={createBlockId(blockId)}
+      className="scroll-mt-32 overflow-x-auto rounded border border-border/70"
+    >
       <table className="w-full text-sm">
         <thead className="bg-muted/20">
           <tr className="border-b border-border/70">
@@ -200,14 +228,50 @@ const VariablesPanel = ({
   )
 }
 // Block router - passes ctx to all blocks
-const BlockRenderer = ({ block, ctx }: { block: Block; ctx: Ctx }) => {
+const BlockRenderer = ({
+  block,
+  ctx,
+  sectionId,
+  containerId,
+}: {
+  block: Block
+  ctx: Ctx
+  containerId: string
+  sectionId: string
+}) => {
   switch (block.type) {
     case "paragraph":
-      return <ParagraphBlock text={block.text} ctx={ctx} />
+      return (
+        <ParagraphBlock
+          sectionId={sectionId}
+          containerId={containerId}
+          blockId={block.id}
+          text={block.text}
+          ctx={ctx}
+        />
+      )
     case "list":
-      return <ListBlock ordered={block.ordered} items={block.items} ctx={ctx} />
+      return (
+        <ListBlock
+          sectionId={sectionId}
+          containerId={containerId}
+          blockId={block.id}
+          ordered={block.ordered}
+          items={block.items}
+          ctx={ctx}
+        />
+      )
     case "table":
-      return <TableBlock headers={block.headers} rows={block.rows} ctx={ctx} />
+      return (
+        <TableBlock
+          sectionId={sectionId}
+          containerId={containerId}
+          blockId={block.id}
+          headers={block.headers}
+          rows={block.rows}
+          ctx={ctx}
+        />
+      )
     default:
       return null
   }
@@ -244,7 +308,13 @@ const ContainerRenderer = ({
 
       <div className="space-y-4">
         {container.blocks.map((block) => (
-          <BlockRenderer key={block.id} block={block} ctx={ctx} />
+          <BlockRenderer
+            containerId={container.id}
+            sectionId={parentSectionId}
+            key={block.id}
+            block={block}
+            ctx={ctx}
+          />
         ))}
       </div>
 

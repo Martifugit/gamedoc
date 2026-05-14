@@ -1,5 +1,5 @@
 import { SidebarClose, Search, SidebarOpen } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
@@ -32,6 +32,7 @@ interface SidebarShellProps {
   /** Search query value */
   searchQuery: string
   onSearchChange: (q: string) => void
+  onOpenChange?: (open: boolean) => void
   /** Whether the search input should be disabled */
   searchDisabled?: boolean
   /** The scrollable content rendered inside the shell */
@@ -55,71 +56,84 @@ export function SidebarShell({
   searchPlaceholder,
   searchQuery,
   onSearchChange,
+  onOpenChange,
   searchDisabled = false,
   children,
   className,
 }: SidebarShellProps) {
   const [open, setOpen] = useState(false)
-  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [closedAndSettled, setClosedAndSettled] = useState(true)
   const isMobile = useIsMobile()
 
   // Keyboard shortcut — same logic the original components used
   useEffect(() => {
-    const key = shortcutLabel.replace(/[()]/g, "").trim()
-    const useCtrl = key.startsWith("ctrl+")
-    const actualKey = useCtrl ? key.replace("ctrl+", "") : key
+    const parts = shortcutLabel
+      .toLowerCase()
+      .replace(/[()]/g, "")
+      .trim()
+      .split("+")
+      .map((p) => p.trim())
+
+    const modifiers = {
+      ctrl: parts.includes("ctrl"),
+      meta: parts.includes("meta"),
+      alt: parts.includes("alt"),
+      shift: parts.includes("shift"),
+    }
+    const key = parts.find((p) => !["ctrl", "meta", "alt", "shift"].includes(p))
+
+    if (!key) return
 
     const handleKeydown = (e: KeyboardEvent) => {
-      const ctrlMatch = useCtrl
-        ? e.ctrlKey
-        : !e.ctrlKey && !e.altKey && !e.metaKey
-      if (e.key === actualKey && ctrlMatch) {
-        e.preventDefault()
-        e.stopPropagation()
-        setOpen((p) => !p)
-      }
+      if (
+        e.key.toLowerCase() !== key ||
+        e.ctrlKey !== modifiers.ctrl ||
+        e.metaKey !== modifiers.meta ||
+        e.altKey !== modifiers.alt ||
+        e.shiftKey !== modifiers.shift
+      )
+        return
+
+      e.preventDefault()
+      e.stopPropagation()
+      setOpen((prev) => !prev)
     }
 
     window.addEventListener("keydown", handleKeydown, true)
     return () => window.removeEventListener("keydown", handleKeydown, true)
   }, [shortcutLabel])
 
+  const onOpenChangeRef = useRef(onOpenChange)
   useEffect(() => {
-    const timeoutHandle = setTimeout(() => {
-      setIsTransitioning(true)
-    }, 500)
+    onOpenChangeRef.current = onOpenChange
+  }, [onOpenChange])
 
-    return () => clearTimeout(timeoutHandle)
+  useEffect(() => {
+    onOpenChangeRef.current?.(open)
   }, [open])
 
   // ── Mobile: collapsed strip → Sheet ─────────────────────────────────────
   if (isMobile) {
     return (
       <>
-        {/* Thin strip that acts as a tap target */}
-        <aside
+        <Button
+          size="icon-lg"
           className={cn(
-            "relative min-h-screen w-10 shrink-0 cursor-pointer border-border/50 hover:bg-primary/20",
-            side === "left" ? "border-r" : "border-l",
-            className
+            "fixed z-40",
+            side === "left" ? "top-4 left-4" : "top-4 right-4"
           )}
-          title={`Open ${title}`}
-          onClick={() => setOpen(true)}
+          title={`Open Sidebar`}
+          onClick={() => {
+            setOpen(true)
+          }}
         >
-          {/* Rotated label so the strip isn't completely empty */}
-          <span
-            className={cn(
-              "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-90 text-[10px] font-semibold tracking-widest whitespace-nowrap text-muted-foreground/50 uppercase select-none"
-            )}
-          >
-            {title}
-          </span>
-        </aside>
+          <SidebarOpen className={side === "right" ? "rotate-180" : ""} />
+        </Button>
 
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetContent
             side={side === "left" ? "left" : "right"}
-            className="flex w-80 flex-col gap-4 px-4 py-6"
+            className="flex flex-col gap-4 bg-background/80 px-4 py-6 backdrop-blur-lg"
           >
             <SheetHeader className="px-0">
               <SheetTitle className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
@@ -155,20 +169,27 @@ export function SidebarShell({
   return (
     <aside
       className={cn(
-        "group relative min-h-screen shrink-0 border-border/50 px-4 py-6 transition-[width]",
+        "group relative min-h-screen shrink-0 border-border/50 px-4 py-6 transition-[width] duration-200",
         side === "left" ? "border-r" : "border-l",
-        open ? "w-72" : "w-12 hover:bg-primary/3",
+        open ? "w-72" : "w-12",
+        !open && closedAndSettled && "hover:bg-primary/3",
         className
       )}
-      title={!open ? `Open ${title}` : undefined}
+      onTransitionEnd={() => {
+        if (!open) setClosedAndSettled(true)
+      }}
+      title={!open ? `Open Sidebar (${shortcutLabel})` : undefined}
       onClick={() => {
         if (open) return
         setOpen(true)
-        setIsTransitioning(true)
       }}
     >
-      {!open && !isTransitioning && (
-        <div className="icon pointer-events-none sticky inset-x-0 top-8 left-1/2 h-0 w-full -translate-x-1/2 opacity-0 transition-opacity delay-600 group-hover:opacity-100">
+      {!open && closedAndSettled && (
+        <div
+          className={cn(
+            "icon pointer-events-none sticky inset-x-0 top-8 left-1/2 h-0 w-full -translate-x-1/2 opacity-0 transition-opacity group-hover:opacity-100"
+          )}
+        >
           <div className="absolute inset-x-0 flex h-8 w-8 items-center justify-center">
             <SidebarOpen
               className={cn("shrink-0", side === "right" && "rotate-180")}
@@ -178,7 +199,7 @@ export function SidebarShell({
         </div>
       )}
 
-      <div className="sticky top-8 flex h-screen min-h-0 flex-col gap-4">
+      <div className="sticky top-8 flex h-screen min-h-0 flex-col gap-4 overflow-hidden">
         {/* Header */}
         <div
           className={cn(
@@ -186,7 +207,9 @@ export function SidebarShell({
             side === "left"
               ? "justify-between"
               : "flex-row-reverse justify-between",
-            open ? "opacity-100" : "pointer-events-none opacity-0"
+            open
+              ? "opacity-100 delay-200"
+              : "pointer-events-none opacity-0 delay-0"
           )}
         >
           {side === "left" ? (
@@ -196,7 +219,10 @@ export function SidebarShell({
               </p>
               <Button
                 title={`(${shortcutLabel})`}
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false)
+                  setClosedAndSettled(false)
+                }}
                 variant="ghost"
                 size="icon"
               >
@@ -207,7 +233,10 @@ export function SidebarShell({
             <>
               <Button
                 title={`(${shortcutLabel})`}
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false)
+                  setClosedAndSettled(false)
+                }}
                 variant="ghost"
                 size="icon"
               >
