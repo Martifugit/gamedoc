@@ -1,4 +1,4 @@
-import { SidebarClose, Search } from "lucide-react"
+import { SidebarClose, Search, SidebarOpen } from "lucide-react"
 import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
@@ -90,7 +90,7 @@ export function SidebarShell({
         {/* Thin strip that acts as a tap target */}
         <aside
           className={cn(
-            "relative min-h-screen w-10 shrink-0 cursor-pointer border-border/50 hover:bg-card/20",
+            "relative min-h-screen w-10 shrink-0 cursor-pointer border-border/50 hover:bg-primary/20",
             side === "left" ? "border-r" : "border-l",
             className
           )}
@@ -146,9 +146,9 @@ export function SidebarShell({
   return (
     <aside
       className={cn(
-        "relative min-h-screen shrink-0 border-border/50 px-4 py-6 transition-[width]",
+        "group relative min-h-screen shrink-0 border-border/50 px-4 py-6 transition-[width]",
         side === "left" ? "border-r" : "border-l",
-        open ? "w-72" : "w-12 hover:bg-card/20",
+        open ? "w-72" : "w-12 hover:bg-primary/3",
         className
       )}
       title={!open ? `Open ${title}` : undefined}
@@ -157,7 +157,18 @@ export function SidebarShell({
         setOpen(true)
       }}
     >
-      <div className="sticky top-6 flex h-screen min-h-0 flex-col gap-4">
+      {!open && (
+        <div className="icon pointer-events-none sticky inset-x-0 top-8 left-1/2 h-0 w-full -translate-x-1/2 opacity-0 transition-opacity delay-600 group-hover:opacity-100">
+          <div className="absolute inset-x-0 flex h-8 w-8 items-center justify-center">
+            <SidebarOpen
+              className={cn("shrink-0", side === "right" && "rotate-180")}
+              size={24}
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="sticky top-8 flex h-screen min-h-0 flex-col gap-4">
         {/* Header */}
         <div
           className={cn(

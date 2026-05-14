@@ -115,11 +115,6 @@ export function EditorToolbar({
 
         {/* File & DB actions */}
         <div className="col-start-3 col-end-3 flex items-center justify-end gap-2">
-          {/* <ButtonGroup
-            className="hidden md:flex"
-            contents={importExportButtonContents}
-          /> */}
-
           <ButtonGroup
             contents={[
               {
@@ -146,20 +141,6 @@ export function EditorToolbar({
               },
             ]}
           />
-
-          {/* <Button
-            variant="outline"
-            size="icon-lg"
-            onClick={() => {
-              if (!ctx || !doc) return
-              exportToPdf(doc, ctx)
-            }}
-            disabled={!ctx || !doc}
-            title="Export PDF"
-            className="hidden rounded-sm md:flex"
-          >
-            <FileDown />
-          </Button> */}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

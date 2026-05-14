@@ -174,8 +174,8 @@ export function GameDocEditor() {
   const isBusy = syncStatus.state === "loading" || syncStatus.state === "saving"
 
   return (
-    <div className="min-h-screen w-full">
-      <div className="mx-auto flex max-w-450">
+    <div className="min-h-screen max-w-screen overflow-x-clip">
+      <div className="mx-auto grid grid-cols-[auto_1fr_auto]">
         <LeftAside
           doc={doc}
           query={query}
@@ -184,7 +184,7 @@ export function GameDocEditor() {
         />
 
         <main className="relative min-w-0 flex-1 space-y-8">
-          <div className="sticky inset-x-0 top-0 z-20 h-0">
+          <div className="sticky top-0 z-20 h-0 w-full">
             <div
               className="pointer-events-none absolute inset-x-0 top-0 h-32"
               style={{
@@ -219,7 +219,7 @@ export function GameDocEditor() {
             onOpenSettings={() => setSettingsOpen(true)}
           />
 
-          <div className="sticky inset-x-0 bottom-0 z-20 h-0">
+          <div className="sticky bottom-0 z-20 h-0 w-full">
             <div
               className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
               style={{

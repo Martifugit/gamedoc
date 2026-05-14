@@ -13,6 +13,7 @@ import { cn, sectionId, headingId } from "@/lib/utils"
 import type React from "react"
 import { RenderInline } from "./RenderInline"
 import ScrollProgressBar from "./scroll-progress"
+import { Fragment } from "react"
 
 interface GameDocPreviewProps {
   doc: GameDoc
@@ -61,7 +62,6 @@ const ListBlock = ({
   )
 }
 
-// Table block renderer - NOW resolves inline syntax in cells
 const TableBlock = ({
   headers,
   rows,
@@ -72,10 +72,10 @@ const TableBlock = ({
   ctx: Ctx
 }) => {
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
+    <div className="overflow-x-auto rounded border border-border/70">
       <table className="w-full text-sm">
-        <thead className="bg-muted/50">
-          <tr className="border-b border-border">
+        <thead className="bg-muted/20">
+          <tr className="border-b border-border/70">
             {headers.map((header, idx) => (
               <th
                 key={idx}
@@ -91,8 +91,8 @@ const TableBlock = ({
             <tr
               key={rowIdx}
               className={cn(
-                "border-b border-border last:border-0",
-                rowIdx % 2 === 0 ? "bg-background" : "bg-muted/20"
+                "border-b border-border/50 last:border-0",
+                rowIdx % 2 === 0 ? "bg-background" : "bg-muted/10"
               )}
             >
               {row.map((cell, cellIdx) => (
@@ -128,18 +128,22 @@ const KeyValuePanel = ({
         return (
           <div
             key={`kv-preview-${i}`}
-            className="mt-4 rounded-lg border border-border bg-muted/30 p-4"
+            className="mt-4 rounded-lg border border-border/40 bg-muted/10 p-4"
           >
             {kv.subtitle && (
               <h4 className="mb-3 text-sm font-semibold text-foreground">
                 {kv.subtitle}
               </h4>
             )}
-            <dl className="space-y-2 text-sm">
+            <dl className="text-sm">
               {kv.pairs.map((pair) => (
-                <div key={pair.id} className="grid grid-cols-3 gap-2">
-                  <dt className="col-span-1 font-medium text-foreground/70">
+                <div
+                  key={pair.id}
+                  className="grid grid-cols-3 gap-2 border-border/30 py-2 not-last:border-b"
+                >
+                  <dt className="col-span-1 flex items-start justify-between font-medium text-foreground/70">
                     <RenderInline text={pair.key} ctx={ctx} />
+                    <span className="mx-1 font-bold text-primary">:</span>
                   </dt>
                   <dd className="col-span-2 wrap-break-word text-foreground">
                     <RenderInline text={pair.value} ctx={ctx} />
@@ -154,54 +158,47 @@ const KeyValuePanel = ({
   )
 }
 
-// Variables table - resolves inline syntax in values
-const VariablesTable = ({
+const VariablesPanel = ({
+  sectionTitle,
   variables,
   ctx,
 }: {
+  sectionTitle: string
   variables: Variable[]
   ctx: Ctx
 }) => {
   if (!variables.length) return null
 
   return (
-    <div className="mt-6 overflow-hidden rounded-lg border border-border">
-      <div className="border-b border-border bg-muted/50 px-4 py-2">
-        <h3 className="text-sm font-semibold text-foreground">Variables</h3>
+    <div>
+      <div className="mb-3 space-y-2">
+        <h3 className="font-medium">
+          <span className="text-blue-500/80">{`${sectionTitle} > `}</span>
+          Variables
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          The following Variables are associated with this Section.
+        </p>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/30">
-            <tr className="border-b border-border">
-              <th className="px-4 py-2 text-left font-medium text-foreground/70">
-                Name
-              </th>
-              <th className="px-4 py-2 text-left font-medium text-foreground/70">
-                Value
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {variables.map((variable) => (
-              <tr
-                key={variable.id}
-                className="border-b border-border last:border-0"
-              >
-                <td className="px-4 py-2 font-mono text-sm text-foreground/90">
-                  {variable.name}
-                </td>
-                <td className="wrap-break-words px-4 py-2 text-foreground/80">
-                  <RenderInline text={variable.value} ctx={ctx} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="flex flex-wrap gap-1.5">
+        {variables.map((variable) => (
+          <div
+            key={variable.id}
+            className="inline-flex items-center overflow-hidden rounded-full border border-border bg-muted/15 font-mono text-xs whitespace-nowrap"
+          >
+            <span className="px-3 py-1 text-muted-foreground">
+              {variable.name}
+            </span>
+            <span className="px-0.5 py-1 text-base text-blue-500">=</span>
+            <span className="px-3 font-medium text-foreground">
+              <RenderInline text={variable.value} ctx={ctx} />
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   )
 }
-
 // Block router - passes ctx to all blocks
 const BlockRenderer = ({ block, ctx }: { block: Block; ctx: Ctx }) => {
   switch (block.type) {
@@ -273,7 +270,7 @@ const SectionRenderer = ({ section, ctx }: { section: Section; ctx: Ctx }) => {
         )}
       </div>
 
-      <div className="space-y-8 rounded-bl-xl border-b border-l border-dashed border-border/60 pb-4 pl-4">
+      <div className={"space-y-8"}>
         {section.containers.map((container: Container) => (
           <ContainerRenderer
             key={container.id}
@@ -284,7 +281,11 @@ const SectionRenderer = ({ section, ctx }: { section: Section; ctx: Ctx }) => {
         ))}
 
         {section.variables && section.variables.length > 0 && (
-          <VariablesTable variables={section.variables} ctx={ctx} />
+          <VariablesPanel
+            sectionTitle={section.title}
+            variables={section.variables}
+            ctx={ctx}
+          />
         )}
       </div>
     </section>
@@ -326,7 +327,7 @@ export function GameDocPreview({ doc, className, ctx }: GameDocPreviewProps) {
   const hasContent = doc.sections.length > 0
 
   return (
-    <div className={cn("relative flex min-h-screen flex-col", className)}>
+    <div className={cn("relative flex min-h-screen flex-col pb-12", className)}>
       <div className="sticky top-0 z-30 border-b border-border bg-background">
         <ScrollProgressBar />
         <div className="relative z-2 px-6 py-4">
@@ -342,14 +343,72 @@ export function GameDocPreview({ doc, className, ctx }: GameDocPreviewProps) {
       <main className="h-full px-6 py-8">
         {hasContent ? (
           <div className="space-y-12">
-            {doc.sections.map((section) => (
-              <SectionRenderer key={section.id} section={section} ctx={ctx} />
+            {doc.sections.map((section, idx) => (
+              <Fragment key={section.id}>
+                <SectionRenderer section={section} ctx={ctx} />
+                {idx !== doc.sections.length - 1 && <SectionDivider />}
+              </Fragment>
             ))}
           </div>
         ) : (
           <EmptyState />
         )}
       </main>
+    </div>
+  )
+}
+
+function SectionDivider() {
+  return (
+    <div className="relative h-8 w-full overflow-hidden opacity-10">
+      <svg
+        width="100%"
+        height="100%"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <defs>
+          <pattern
+            id="crosshatch"
+            width="12"
+            height="12"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(0)"
+          >
+            <line
+              x1="0"
+              y1="0"
+              x2="12"
+              y2="12"
+              stroke="currentColor"
+              strokeWidth="0.75"
+            />
+            <line
+              x1="12"
+              y1="0"
+              x2="0"
+              y2="12"
+              stroke="currentColor"
+              strokeWidth="0.75"
+            />
+          </pattern>
+          <mask id="fade">
+            <rect width="100%" height="100%" fill="url(#fadeGrad)" />
+          </mask>
+          <linearGradient id="fadeGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="white" stopOpacity="0" />
+            <stop offset="30%" stopColor="white" stopOpacity="1" />
+            <stop offset="70%" stopColor="white" stopOpacity="1" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <rect
+          width="100%"
+          height="100%"
+          fill="url(#crosshatch)"
+          mask="url(#fade)"
+        />
+      </svg>
     </div>
   )
 }
