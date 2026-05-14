@@ -23,6 +23,7 @@ export function ConfirmDelete({
 }) {
   return (
     <AlertDialog>
+      <AlertDialogTitle className="sr-only">Confirm Delete</AlertDialogTitle>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
