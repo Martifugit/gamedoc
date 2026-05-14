@@ -175,7 +175,7 @@ export function GameDocEditor() {
 
   return (
     <div className="min-h-screen max-w-screen overflow-x-clip">
-      <div className="mx-auto grid max-w-[1600px] grid-cols-[auto_1fr_auto]">
+      <div className="mx-auto grid max-w-400 grid-cols-[auto_1fr_auto]">
         <LeftAside
           doc={doc}
           query={query}
