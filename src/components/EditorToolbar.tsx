@@ -28,7 +28,6 @@ import {
 } from "./ui/dropdown-menu"
 import { useCallback } from "react"
 import type { SyncStatus } from "@/hooks/use-db-sync"
-import { useAuth } from "@/hooks/use-auth"
 
 interface EditorToolbarProps {
   syncStatus: SyncStatus
@@ -37,7 +36,7 @@ interface EditorToolbarProps {
   isBusy: boolean
   doc: GameDoc | null
   ctx: Ctx | null
-  credentials: string | null
+  authorized: boolean
   onOpenSettings: () => void
   onAddSection: () => void
   onSetView: (view: EditorView) => void
@@ -54,7 +53,7 @@ export function EditorToolbar({
   isBusy,
   doc,
   ctx,
-  credentials,
+  authorized,
   onOpenSettings,
   onAddSection,
   onSetView,
@@ -66,8 +65,6 @@ export function EditorToolbar({
   const onUpload = useCallback(() => {
     fileRef.current?.click()
   }, [fileRef])
-
-  const authorized = useAuth(credentials)
 
   return (
     <div className="fixed inset-x-4 bottom-0 z-50 mx-auto flex max-w-200 md:sticky md:bottom-6 md:px-4">

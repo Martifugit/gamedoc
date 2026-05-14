@@ -24,6 +24,7 @@ import { LeftAside } from "./LeftAside"
 import { RightAside } from "./RightAside"
 import { useEditorSettings } from "@/hooks/use-editor-settings"
 import { CommentsHost, CommentsModal } from "./comments"
+import { useAuth } from "@/hooks/use-auth"
 // import { GameDocViewer } from "./GameDocViewer"
 
 export function GameDocEditor() {
@@ -61,6 +62,7 @@ export function GameDocEditor() {
     setDoc,
     () => docRef.current
   )
+  const authorized = useAuth(credentials)
 
   const update = useCallback(
     (fn: (d: GameDoc) => GameDoc) => setDoc((d) => (d ? fn(d) : d)),
@@ -73,17 +75,24 @@ export function GameDocEditor() {
 
   useEffect(() => {
     if (isNewProject || didInitialLoad.current) return
-    if (!credentials) return
+    if (!authorized) return
     didInitialLoad.current = true
     loadFromDb()
-  }, [isNewProject, credentials, loadFromDb])
+  }, [isNewProject, authorized, loadFromDb])
 
-  // Auto-sync to DB every 30 s when enabled
+  // Auto-save to DB every 30 s when enabled
   useEffect(() => {
-    if (!autoSync) return
+    if (!autoSync || !authorized) return
     const id = setInterval(() => saveToDb(), 30_000)
     return () => clearInterval(id)
-  }, [autoSync, saveToDb])
+  }, [autoSync, authorized, saveToDb])
+
+  // Auto-load from DB every 30 s when enabled
+  useEffect(() => {
+    if (!autoSync || !authorized) return
+    const id = setInterval(() => loadFromDb(), 30_000)
+    return () => clearInterval(id)
+  }, [autoSync, authorized, loadFromDb])
 
   // ── Handlers passed into SyncModal ─────────────────────────────────────────
 
