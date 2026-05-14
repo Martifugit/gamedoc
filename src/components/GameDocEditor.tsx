@@ -21,20 +21,21 @@ import { SettingsModal } from "./SettingsModal"
 import { SyncAuthModal } from "./SyncAuthModal"
 import { LeftAside } from "./LeftAside"
 import { RightAside } from "./RightAside"
+import { useEditorSettings } from "@/hooks/use-editor-settings"
 // import { GameDocViewer } from "./GameDocViewer"
 
 export type EditorView = "preview" | "editor" /* | "json-preview"  */
 
 export function GameDocEditor() {
   const storageKey = "is_new_project"
-
   const { doc, setDoc, clearCurrentDoc, loaded } = useGameDoc()
+  const { autoSync, toggleAutoSync } = useEditorSettings()
+
   const [query, setQuery] = useState("")
   const [view, setView] = useState<EditorView>("preview")
   const [syncModalState, setSyncModalState] = useState<"load" | "save" | null>(
     null
   )
-  const [autoSync, setAutoSync] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [isNewProject, setIsNewProject] = useState<boolean>(() => {
     const saved = localStorage.getItem(storageKey)
@@ -262,7 +263,7 @@ export function GameDocEditor() {
         hasCredentials={!!credentials}
         onSetOpen={setSettingsOpen}
         onClearCurrentDoc={clearCurrentDoc}
-        onToggleAutoSync={() => setAutoSync((v) => !v)}
+        onToggleAutoSync={toggleAutoSync}
         onClearCredentials={clearCredentials}
       />
 

@@ -60,6 +60,7 @@ export function SidebarShell({
   className,
 }: SidebarShellProps) {
   const [open, setOpen] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false)
   const isMobile = useIsMobile()
 
   // Keyboard shortcut — same logic the original components used
@@ -82,6 +83,14 @@ export function SidebarShell({
     window.addEventListener("keydown", handleKeydown, true)
     return () => window.removeEventListener("keydown", handleKeydown, true)
   }, [shortcutLabel])
+
+  useEffect(() => {
+    const timeoutHandle = setTimeout(() => {
+      setIsTransitioning(true)
+    }, 500)
+
+    return () => clearTimeout(timeoutHandle)
+  }, [open])
 
   // ── Mobile: collapsed strip → Sheet ─────────────────────────────────────
   if (isMobile) {
@@ -155,9 +164,10 @@ export function SidebarShell({
       onClick={() => {
         if (open) return
         setOpen(true)
+        setIsTransitioning(true)
       }}
     >
-      {!open && (
+      {!open && !isTransitioning && (
         <div className="icon pointer-events-none sticky inset-x-0 top-8 left-1/2 h-0 w-full -translate-x-1/2 opacity-0 transition-opacity delay-600 group-hover:opacity-100">
           <div className="absolute inset-x-0 flex h-8 w-8 items-center justify-center">
             <SidebarOpen
