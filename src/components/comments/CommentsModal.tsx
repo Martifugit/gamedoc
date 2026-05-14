@@ -190,16 +190,16 @@ export function CommentsModal({
                     includes children
                   </span>
                 )}
+                {selected.kind !== "global" && (
+                  <button
+                    className="text-[11px] text-muted-foreground transition-colors hover:text-foreground"
+                    onClick={() => setSelected({ kind: "global" })}
+                  >
+                    Reset
+                  </button>
+                )}
               </div>
 
-              {selected.kind !== "global" && (
-                <button
-                  className="text-[11px] text-muted-foreground transition-colors hover:text-foreground"
-                  onClick={() => setSelected({ kind: "global" })}
-                >
-                  Reset
-                </button>
-              )}
               <div
                 title={
                   authorized

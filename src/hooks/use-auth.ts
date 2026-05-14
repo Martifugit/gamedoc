@@ -10,7 +10,7 @@ export function useAuth(credentials: string | null) {
       try {
         const res = await fetch("/api/auth", {
           method: "POST",
-          body: JSON.stringify(credentials),
+          body: JSON.stringify({ password: credentials }),
           headers: { "Content-Type": "application/json" },
         })
 
