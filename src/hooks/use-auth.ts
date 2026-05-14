@@ -5,6 +5,7 @@ export function useAuth(credentials: string | null) {
 
   useEffect(() => {
     if (!credentials) return
+
     const validateCredentials = async () => {
       try {
         const res = await fetch("/api/auth", {
@@ -13,20 +14,14 @@ export function useAuth(credentials: string | null) {
           headers: { "Content-Type": "application/json" },
         })
 
-        if (res.ok) {
-          return true
-        }
-
-        return false
+        setAuthorized(res.ok)
       } catch (error) {
         console.error("Auth failed", error)
-        return false
+        return setAuthorized(false)
       }
     }
 
-    validateCredentials().then((value) => {
-      setAuthorized(value)
-    })
+    validateCredentials()
   }, [credentials])
 
   return authorized
