@@ -1,4 +1,4 @@
-import { Hash, Plus, Search, Trash2 } from "lucide-react"
+import { Hash, Plus, Search, SidebarClose, Trash2 } from "lucide-react"
 import { Input } from "./ui/input"
 import {
   uid,
@@ -6,10 +6,11 @@ import {
   type Section,
   type Variable,
 } from "@/lib/gamedoc-types"
-import { sectionId } from "@/lib/utils"
-import { useState } from "react"
+import { cn, sectionId } from "@/lib/utils"
+import { useEffect, useState } from "react"
 import { ConfirmDelete } from "./ConfirmDelete"
 import { ScrollArea } from "./ui/scroll-area"
+import { Button } from "./ui/button"
 
 export function VariablesSidebar({
   doc,
@@ -18,18 +19,64 @@ export function VariablesSidebar({
   doc: GameDoc
   onChangeSection: (sIdx: number, fn: (s: Section) => Section) => void
 }) {
+  const [open, setOpen] = useState(false)
   const [q, setQ] = useState("")
   const ql = q.trim().toLowerCase()
   const total = doc.sections.reduce((n, s) => n + s.variables.length, 0)
 
+  useEffect(() => {
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.code === "b" && e.ctrlKey) {
+        setOpen((p) => !p)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeydown)
+
+    return () => window.removeEventListener("keydown", handleKeydown)
+  }, [])
+
   return (
-    <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col gap-3 border-l border-border px-4 py-6 xl:flex">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+    <aside
+      className={cn(
+        "sticky top-0 hidden h-screen shrink-0 flex-col gap-3 overflow-hidden border-l border-border/50 px-4 py-6 transition-[width] lg:flex",
+        open ? "w-72" : "w-12"
+      )}
+    >
+      <Button
+        className={cn(
+          "absolute top-6 left-1/2 -translate-x-1/2 transition-opacity",
+          open
+            ? "pointer-events-none opacity-0 duration-0"
+            : "opacity-100 delay-500"
+        )}
+        onClick={() => setOpen(!open)}
+        variant="ghost"
+        size="icon-lg"
+      >
+        <SidebarClose className={open ? "rotate-180" : "rotate-0"} />
+      </Button>
+
+      <div
+        className={cn(
+          "flex flex-nowrap items-center gap-8 transition-opacity",
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        )}
+      >
+        <Button onClick={() => setOpen(!open)} variant="ghost" size="icon">
+          <SidebarClose className={open ? "rotate-180" : "rotate-0"} />
+        </Button>
+
+        <p className="text-xs font-semibold tracking-wide text-nowrap text-muted-foreground uppercase">
           Variables ({total})
         </p>
       </div>
-      <div className="relative">
+      <div
+        className={cn(
+          "relative transition-opacity",
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        )}
+      >
         <Search className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search variables…"
@@ -38,7 +85,13 @@ export function VariablesSidebar({
           className="rounded-md bg-transparent! pl-8"
         />
       </div>
-      <div className="flex min-h-0 flex-1 overflow-hidden text-sm">
+
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 overflow-hidden text-sm transition-opacity",
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        )}
+      >
         <ScrollArea className="min-h-0 flex-1 pr-3">
           <div className="space-y-4">
             {doc.sections.length === 0 && (

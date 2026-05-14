@@ -125,10 +125,10 @@ export function ContainerView({
         ))}
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 pt-3">
         <Button
           size="sm"
-          variant="outline"
+          variant="ghost"
           className="gap-1"
           onClick={() => addBlock({ id: uid(), type: "paragraph", text: "" })}
         >
@@ -136,7 +136,7 @@ export function ContainerView({
         </Button>
         <Button
           size="sm"
-          variant="outline"
+          variant="ghost"
           className="gap-1"
           onClick={() =>
             addBlock({ id: uid(), type: "list", ordered: false, items: [""] })
@@ -146,7 +146,7 @@ export function ContainerView({
         </Button>
         <Button
           size="sm"
-          variant="outline"
+          variant="ghost"
           className="gap-1"
           onClick={() =>
             addBlock({
@@ -161,7 +161,7 @@ export function ContainerView({
         </Button>
         <Button
           size="sm"
-          variant="outline"
+          variant="ghost"
           className="gap-1"
           onClick={() =>
             onChange((c) => ({

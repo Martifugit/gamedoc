@@ -89,7 +89,9 @@ export function SectionView({
       id={sectionId(section.id)}
       onMouseEnter={() => onSetCurrentSectionId(section.id)}
       onMouseLeave={() => onSetCurrentSectionId(undefined)}
-      className="relative scroll-mt-6 rounded-xl border border-border p-5"
+      className={
+        "relative scroll-mt-6 rounded-xl border border-border p-6 opacity-75 transition-opacity hover:opacity-100"
+      }
     >
       <span className="absolute -top-2.5 bg-background px-3 text-sm text-muted-foreground">
         Section
@@ -158,7 +160,7 @@ export function SectionView({
         description={section.description}
         onChange={onChange}
       />
-      <div className="space-y-4">
+      <div className="space-y-8">
         {section.containers.map((c, i) => (
           <ContainerView
             key={c.id}

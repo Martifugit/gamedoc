@@ -1,5 +1,5 @@
 import { get, set } from "idb-keyval"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { emptyDoc, type GameDoc } from "./gamedoc-types"
 
 const KEY = "gamedoc:v1"
@@ -8,6 +8,16 @@ export function useGameDoc() {
   const [doc, setDoc] = useState<GameDoc | null>(null)
   const [loaded, setLoaded] = useState(false)
   const timer = useRef<number | null>(null)
+
+  const clearCurrentDoc = useCallback(() => {
+    if (!doc) return
+    setDoc({
+      title: doc?.title ?? "New Document",
+      sections: [],
+      updatedAt: Date.now(),
+    })
+    localStorage.removeItem(KEY)
+  }, [setDoc, doc])
 
   useEffect(() => {
     ;(async () => {
@@ -41,5 +51,5 @@ export function useGameDoc() {
     }, 400)
   }, [doc, loaded])
 
-  return { doc, setDoc, loaded }
+  return { doc, setDoc, clearCurrentDoc, loaded }
 }

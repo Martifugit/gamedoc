@@ -1,9 +1,10 @@
 import { useRef, useState, useCallback, useMemo, useEffect } from "react"
-import { Search, GripVertical } from "lucide-react"
+import { Search, GripVertical, SidebarClose } from "lucide-react"
 import { Input } from "./ui/input"
 import { cn, headingId, sectionId } from "@/lib/utils"
 import type { GameDoc } from "@/lib/gamedoc-types"
 import { ScrollArea } from "./ui/scroll-area"
+import { Button } from "./ui/button"
 
 type FlatItem =
   | { type: "section"; id: string; label: string; si: number }
@@ -93,7 +94,7 @@ const renderIndentationDots = (level: number) => {
   return dots
 }
 
-export function TableOfContents({
+export function TableOfContentsSidebar({
   doc,
   query,
   setQuery,
@@ -109,6 +110,7 @@ export function TableOfContents({
   const total = doc.sections.length
   const flat = useMemo(() => buildFlat(doc), [doc])
 
+  const [open, setOpen] = useState(false)
   const [dragIdx, setDragIdx] = useState<number | null>(null)
   const [dropIdx, setDropIdx] = useState<number | null>(null)
   const itemRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -165,13 +167,47 @@ export function TableOfContents({
   }, [dragIdx, doc, onReorder, findDropTarget])
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col gap-3 border-r border-border/50 px-4 py-6 lg:flex">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+    <aside
+      className={cn(
+        "sticky top-0 hidden h-screen shrink-0 flex-col gap-3 overflow-hidden border-r border-border/50 px-4 py-6 transition-[width] lg:flex",
+        open ? "w-72" : "w-12"
+      )}
+    >
+      <Button
+        className={cn(
+          "absolute top-6 left-1/2 -translate-x-1/2 transition-opacity",
+          open
+            ? "pointer-events-none opacity-0 duration-0"
+            : "opacity-100 delay-500"
+        )}
+        onClick={() => setOpen(!open)}
+        variant="ghost"
+        size="icon-lg"
+      >
+        <SidebarClose className={open ? "rotate-0" : "rotate-180"} />
+      </Button>
+
+      <div
+        className={cn(
+          "flex flex-nowrap items-center justify-between transition-opacity",
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        )}
+      >
+        <p className="text-xs font-semibold tracking-wide text-nowrap text-muted-foreground uppercase">
           Sections ({total})
         </p>
+
+        <Button onClick={() => setOpen(!open)} variant="ghost" size="icon">
+          <SidebarClose className={open ? "rotate-0" : "rotate-180"} />
+        </Button>
       </div>
-      <div className="relative">
+
+      <div
+        className={cn(
+          "relative transition-opacity",
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        )}
+      >
         <Search className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search sections…"
@@ -181,7 +217,12 @@ export function TableOfContents({
         />
       </div>
 
-      <nav className="flex min-h-0 flex-1 overflow-hidden text-sm">
+      <nav
+        className={cn(
+          "flex min-h-0 flex-1 overflow-hidden text-sm transition-opacity",
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        )}
+      >
         <ScrollArea className="min-h-0 flex-1 pr-1">
           <p className="px-2 pb-2 text-xs text-muted-foreground">
             Table of contents

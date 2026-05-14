@@ -6,7 +6,8 @@ import { visualizer } from "rollup-plugin-visualizer"
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/gamedoc/",
+  base: "/",
+  // base: "/gamedoc/",
   plugins: [
     react(),
     tailwindcss(),

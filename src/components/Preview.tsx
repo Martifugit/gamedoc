@@ -12,6 +12,7 @@ import {
 import { cn, sectionId, headingId } from "@/lib/utils"
 import type React from "react"
 import { RenderInline } from "./RenderInline"
+import ScrollProgressBar from "./scroll-progress"
 
 interface GameDocPreviewProps {
   doc: GameDoc
@@ -241,7 +242,7 @@ const ContainerRenderer = ({
   const headingStyles = `${additionalStyles} ${headingSize}`
 
   return (
-    <div className="scroll-mt-36" id={headingId(parentSectionId, container.id)}>
+    <div className="scroll-mt-24" id={headingId(parentSectionId, container.id)}>
       <HeadingTag className={headingStyles}>{container.title}</HeadingTag>
 
       <div className="space-y-4">
@@ -260,7 +261,7 @@ const ContainerRenderer = ({
 // Section component
 const SectionRenderer = ({ section, ctx }: { section: Section; ctx: Ctx }) => {
   return (
-    <section id={sectionId(section.id)} className="scroll-mt-36">
+    <section id={sectionId(section.id)} className="scroll-mt-24">
       <div className="mb-6 pb-3">
         <h2 className="mb-3 text-4xl font-bold text-foreground">
           {section.title}
@@ -325,8 +326,9 @@ export function GameDocPreview({ doc, className, ctx }: GameDocPreviewProps) {
   const hasContent = doc.sections.length > 0
 
   return (
-    <div className={cn("min-h-screen bg-background", className)}>
+    <div className={cn("relative flex min-h-screen flex-col", className)}>
       <div className="sticky top-0 z-30 h-16 border-b border-border bg-background">
+        <ScrollProgressBar />
         <div className="relative z-2 px-6 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-2xl font-black text-foreground">{doc.title}</h1>
@@ -338,7 +340,7 @@ export function GameDocPreview({ doc, className, ctx }: GameDocPreviewProps) {
         <div className="absolute inset-x-0 top-16 z-1 h-10 bg-linear-to-b from-background to-transparent" />
       </div>
 
-      <main className="px-6 py-8">
+      <main className="h-full px-6 py-8">
         {hasContent ? (
           <div className="space-y-12">
             {doc.sections.map((section) => (
