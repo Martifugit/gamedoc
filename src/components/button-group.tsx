@@ -25,7 +25,7 @@ export function ButtonGroup({
   }
 
   return (
-    <div className={cn(className, "flex items-center")}>
+    <div className={cn("flex items-center", className)}>
       {contents.map((content, idx) => {
         let resolvedClass: string = ""
 

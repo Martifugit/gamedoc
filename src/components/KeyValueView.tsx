@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Plus, Trash2, X } from "lucide-react"
+import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { uid, type KeyValuePair, type KeyValueSet } from "@/lib/gamedoc-types"
@@ -11,6 +11,8 @@ import { formatVariableReference } from "@/lib/reference-syntax"
 import type { Ctx, Section } from "@/lib/gamedoc-types"
 import { RenderInline } from "./RenderInline"
 import { useEditorInput } from "@/hooks/use-editable-input"
+import { CopyButton } from "./copy-button"
+import { ConfirmDelete } from "./ConfirmDelete"
 
 export function KeyValueView({
   keyValue,
@@ -76,16 +78,24 @@ export function KeyValueView({
       <span className="absolute -top-2 bg-background px-3 text-xs text-muted-foreground">
         Key-value Set
       </span>
-      <div className="flex items-center justify-between">
+      <div className="mt-1 mb-3 flex items-center justify-between gap-1">
         <input
           value={local.subtitle ?? ""}
           onChange={(e) =>
             setLocal((prev) => ({ ...prev, subtitle: e.target.value }))
           }
           onBlur={() => onChange((d) => ({ ...d, subtitle: local.subtitle }))}
-          className="mb-3 flex-1 bg-transparent outline-none"
-          placeholder="Subtitle (optional)"
+          className="flex-1 rounded border border-transparent bg-transparent p-1 focus-visible:border-border focus-visible:outline-0"
+          placeholder="New Subtitle (optional)..."
         />
+
+        <CopyButton
+          item={{
+            data: keyValue,
+            kind: "keyvalue",
+          }}
+        />
+
         <Button
           size="icon"
           variant="ghost"
@@ -97,9 +107,21 @@ export function KeyValueView({
             <ChevronDown className="h-4 w-4" />
           )}
         </Button>
-        <Button size="icon" variant="ghost" onClick={onRemove}>
-          <X className="h-4 w-4" />
-        </Button>
+
+        <ConfirmDelete
+          title="Delete this block?"
+          description="The content in this block will be removed."
+          onConfirm={onRemove}
+          trigger={
+            <Button
+              className="relative z-1 opacity-0 transition-opacity group-hover:opacity-100"
+              title="Delete block"
+              variant={"ghost"}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          }
+        />
       </div>
 
       {expanded && (
@@ -133,12 +155,17 @@ export function KeyValueView({
       {showPreview && local.pairs.length > 0 && (
         <dl className="mt-2 rounded border border-border/40 bg-muted/20 p-2 text-sm leading-relaxed">
           {local.pairs.map((p) => (
-            <div key={p.id} className="flex gap-2">
-              <dt className="shrink-0 text-muted-foreground/60">
-                {p.key || <em>key</em>}:
+            <div key={p.id} className="flex gap-1">
+              <dt className="shrink-0 text-muted-foreground/80">
+                {p.key || <em>key</em>}
+                <span className="ml-1 text-primary">:</span>
               </dt>
               <dd className="text-muted-foreground">
-                <RenderInline ctx={ctx} text={p.value} />
+                {p.value.trim() === "" && !p.key ? (
+                  <em>value</em>
+                ) : (
+                  <RenderInline ctx={ctx} text={p.value} />
+                )}
               </dd>
             </div>
           ))}

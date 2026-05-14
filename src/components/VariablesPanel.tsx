@@ -17,12 +17,12 @@ export function VariablesPanel({
 }) {
   return (
     <div className="rounded-lg border border-border p-3">
-      <div className="mb-2 flex items-center justify-between">
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+      <div className="relative mb-2 flex items-end">
+        <span className="absolute -top-5.5 bg-background px-3 text-sm text-muted-foreground">
           Variables
-        </p>
+        </span>
         <button
-          className="text-muted-foreground hover:text-foreground"
+          className="ml-auto text-muted-foreground hover:text-foreground"
           onClick={onClose}
         >
           <X className="h-4 w-4" />
@@ -34,7 +34,7 @@ export function VariablesPanel({
         ))}
         <Button
           size="sm"
-          variant="outline"
+          variant="ghost"
           className="gap-1"
           onClick={() =>
             onChange((s) => ({
@@ -84,6 +84,7 @@ function Variable({
             }))
           }
         />
+        <span className="mx-1 text-lg text-primary">:</span>
         <Input
           value={localVarVal}
           placeholder="value"
@@ -101,7 +102,7 @@ function Variable({
 
         <ConfirmDelete
           title="Delete this variable?"
-          description={`References to "${variable.name || "(unnamed)"}" will show as "?".`}
+          description={`References to variable: "${variable.name || variable.id || "(unnamed)"}" will be broken.`}
           onConfirm={() =>
             onChange((s) => ({
               ...s,

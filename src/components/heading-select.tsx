@@ -23,7 +23,7 @@ export function HeadingSelect({
     >
       <SelectTrigger
         onBlur={onBlur}
-        className="h-8 w-16 rounded-md bg-transparent!"
+        className="h-8 w-16 rounded-md bg-transparent! text-sm"
       >
         <SelectValue />
       </SelectTrigger>

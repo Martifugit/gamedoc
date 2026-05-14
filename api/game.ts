@@ -23,6 +23,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   log("incoming", req.method, "url:", req.url)
 
   if (!client || !uri) {
+    // TEMPORARY DEBUG — remove after debugging
+    if (uri) {
+      try {
+        const u = new URL(uri)
+        log("URI scheme:", u.protocol)
+        log("URI host:", u.host)
+        log("URI username:", u.username)
+        log("URI password length:", u.password.length)
+        log("URI password first char:", u.password[0])
+        log("URI password last char:", u.password[u.password.length - 1])
+        log("URI pathname:", u.pathname)
+        log("URI search:", u.search)
+      } catch (e) {
+        log("URI parse failed:", e)
+      }
+    }
+
     logErr("MONGO_URI not configured")
     return res
       .status(500)

@@ -69,7 +69,7 @@ export function TableBlockView({
                           ),
                         }))
                       }
-                      className="w-full min-w-20 bg-transparent px-1 font-medium outline-none"
+                      className="w-full min-w-20 rounded border border-transparent bg-transparent p-1 font-medium outline-none focus-visible:border-border"
                     />
                   </div>
                 </TableHead>
@@ -95,7 +95,7 @@ export function TableBlockView({
                     <input
                       value={cell}
                       onChange={(e) => setCell(r, c, e.target.value)}
-                      className="w-full min-w-20 bg-transparent px-1 outline-none"
+                      className="w-full min-w-20 rounded border border-transparent bg-transparent p-1 outline-none focus-visible:border-border"
                     />
                   </TableCell>
                 ))}
@@ -134,7 +134,7 @@ export function TableBlockView({
         }
         title="Add column"
       >
-        <Plus className="mx-auto h-4 w-4" /> Col
+        <Plus className="mx-auto h-4 w-4" /> Add Col
       </Button>
       <Button
         size="sm"
@@ -147,7 +147,7 @@ export function TableBlockView({
           }))
         }
       >
-        <Plus className="h-3.5 w-3.5" /> Row
+        <Plus className="h-3.5 w-3.5" /> Add Row
       </Button>
     </div>
   )

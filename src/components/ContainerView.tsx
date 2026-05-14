@@ -1,5 +1,6 @@
 import {
   ChevronRight,
+  ClipboardPaste,
   Copy,
   ListIcon,
   Settings2,
@@ -17,13 +18,16 @@ import {
   type Section,
 } from "@/lib/gamedoc-types"
 
-import { headingId } from "@/lib/utils"
+import { cn, headingId } from "@/lib/utils"
 import { KeyValueView } from "./KeyValueView"
 import { BlockView } from "./BlockView"
 import { ConfirmDelete } from "./ConfirmDelete"
 import { RefCopyButton } from "./RefCopyButton"
 import { HeadingSelect } from "./heading-select"
 import { useLocalDraft } from "@/hooks/use-local-draft"
+import { useClipboard } from "@/context/use-clipboard"
+import { cloneBlock } from "@/lib/clipboard-clone"
+import { useMoveHighlight } from "@/hooks/use-move-highlight"
 
 export function ContainerView({
   container,
@@ -49,10 +53,39 @@ export function ContainerView({
   const addBlock = (b: Block) =>
     onChange((c) => ({ ...c, blocks: [...c.blocks, b] }))
 
+  const { item } = useClipboard()
+  const {
+    ref: containerRef,
+    highlightMoved,
+    triggerMove,
+  } = useMoveHighlight<HTMLDivElement>()
+
+  const handlePaste = () => {
+    if (!item) return
+    const [kind, clone] = cloneBlock(item)
+    if (kind === "block") {
+      onChange((c) => ({ ...c, blocks: [...c.blocks, clone] }))
+    } else {
+      onChange((c) => ({
+        ...c,
+        keyValues: [...(c.keyValues ?? []), clone],
+      }))
+    }
+  }
+
+  const handleMove = (dir: -1 | 1) => {
+    onMove(dir)
+    triggerMove()
+  }
+
   return (
     <div
+      ref={containerRef}
       id={headingId(secId, container.id)}
-      className="group relative scroll-mt-22 rounded-lg border border-border/60 p-4"
+      className={cn(
+        "group relative scroll-mt-22 rounded-lg border p-4 transition-colors",
+        highlightMoved ? "border-blue-500" : "border-border/60"
+      )}
     >
       <span className="absolute -top-2 bg-background px-3 text-xs text-muted-foreground">
         Container
@@ -70,12 +103,22 @@ export function ContainerView({
           containerId={container.id}
           name={container.title}
         />
-        <Button variant="ghost" size="icon" onClick={() => onMove(-1)}>
+        <Button variant="ghost" size="icon" onClick={() => handleMove(-1)}>
           <ChevronRight className="h-4 w-4 -rotate-90" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={() => onMove(1)}>
+        <Button variant="ghost" size="icon" onClick={() => handleMove(1)}>
           <ChevronRight className="h-4 w-4 rotate-90" />
         </Button>
+        {item && (
+          <Button
+            onClick={handlePaste}
+            className="relative z-1 h-8.5 w-8.5 opacity-0 transition-opacity group-hover:opacity-100"
+            title="Paste Block"
+            variant={"ghost"}
+          >
+            <ClipboardPaste />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="icon"
@@ -216,8 +259,8 @@ function ContainerTitleInput({
       value={draft.value}
       onBlur={draft.onBlur}
       onChange={(e) => draft.onChange(e.target.value)}
-      className="w-full bg-transparent outline-none"
-      placeholder="Heading"
+      className="w-full rounded border border-transparent bg-transparent px-1 outline-none focus-visible:border-border"
+      placeholder="New Heading..."
       spellCheck={false}
     />
   )

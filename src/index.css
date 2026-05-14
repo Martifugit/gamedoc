@@ -166,6 +166,6 @@
 
 /* Global selection style */
 ::selection {
-  background-color: var(--color-primary);
-  color: var(--color-primary-foreground);
+  background-color: var(--color-secondary);
+  color: var(--color-secondary-foreground);
 }

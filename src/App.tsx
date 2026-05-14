@@ -1,7 +1,12 @@
 import { GameDocEditor } from "./components/GameDocEditor"
+import { ClipboardProvider } from "./context/use-clipboard"
 
 export function App() {
-  return <GameDocEditor />
+  return (
+    <ClipboardProvider>
+      <GameDocEditor />
+    </ClipboardProvider>
+  )
 }
 
 export default App

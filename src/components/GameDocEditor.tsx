@@ -6,37 +6,21 @@ import {
   type Variable,
   newSection,
 } from "@/lib/gamedoc-types"
-import { Button } from "@/components/ui/button"
-import { RotateCcw, Settings, Loader2, Trash2 } from "lucide-react"
+import { RotateCcw } from "lucide-react"
 
 import { slug } from "@/lib/utils"
 import { buildHeadingsMap } from "@/lib/reference-syntax"
-import { TableOfContentsSidebar } from "./TableOfContentsSidebar"
-import { VariablesSidebar } from "./VariablesSidebar"
 import { SectionView } from "./SectionView"
 import { GameDocPreview } from "./Preview"
 import { ReferencesToolbar } from "./ReferencesToolbar"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogTitle,
-} from "./ui/dialog"
-import { Input } from "./ui/input"
-import { Label } from "./ui/label"
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldLabel,
-  FieldTitle,
-} from "./ui/field"
-import { Switch } from "./ui/switch"
 import { useMongoCredentials } from "@/hooks/use-mongo-creds"
 import { useDbSync } from "@/hooks/use-db-sync"
 import { EditorToolbar } from "./EditorToolbar"
+import { SelectProjectTypeModal } from "./SelectProjectTypeModal"
+import { SettingsModal } from "./SettingsModal"
+import { SyncAuthModal } from "./SyncAuthModal"
+import { LeftAside } from "./LeftAside"
+import { RightAside } from "./RightAside"
 // import { GameDocViewer } from "./GameDocViewer"
 
 export type EditorView = "preview" | "editor" /* | "json-preview"  */
@@ -169,7 +153,7 @@ export function GameDocEditor() {
     )
   }
 
-  if (!loaded || !doc) {
+  if (!loaded) {
     return (
       <div className="flex min-h-screen items-center justify-center gap-2 text-muted-foreground">
         <RotateCcw className="h-4 w-4 shrink-0 animate-spin" /> Loading…
@@ -177,9 +161,11 @@ export function GameDocEditor() {
     )
   }
 
-  const headings = buildHeadingsMap(doc)
+  const headings = doc ? buildHeadingsMap(doc) : new Map()
   const allVars = new Map<string, Variable>()
-  doc.sections.forEach((s) => s.variables.forEach((v) => allVars.set(v.id, v)))
+  if (doc) {
+    doc.sections.map((s) => s.variables.map((v) => allVars.set(v.id, v)))
+  }
   const ctx: Ctx = { headings, vars: allVars }
 
   const addSection = () =>
@@ -188,9 +174,9 @@ export function GameDocEditor() {
   const isBusy = syncStatus.state === "loading" || syncStatus.state === "saving"
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen w-full">
       <div className="mx-auto flex max-w-450">
-        <TableOfContentsSidebar
+        <LeftAside
           doc={doc}
           query={query}
           setQuery={setQuery}
@@ -198,15 +184,14 @@ export function GameDocEditor() {
         />
 
         <main className="relative min-w-0 flex-1 space-y-8 pt-6">
-          {view === "editor" && (
-            <CenterEditorView
-              ctx={ctx}
-              doc={doc}
-              update={update}
-              openSettings={() => setSettingsOpen(true)}
-            />
+          <div className="sticky top-0 z-20 h-0">
+            <div className="absolute inset-x-0 top-0 h-32 bg-linear-to-b from-background via-background to-transparent" />
+          </div>
+
+          {doc && view === "editor" && (
+            <CenterEditorView ctx={ctx} doc={doc} update={update} />
           )}
-          {view === "preview" && <GameDocPreview doc={doc} ctx={ctx} />}
+          {doc && view === "preview" && <GameDocPreview doc={doc} ctx={ctx} />}
           {/* {view === "json-preview" && <GameDocViewer doc={doc} />} */}
 
           {/* Sticky toolbar */}
@@ -220,16 +205,17 @@ export function GameDocEditor() {
             onExport={onExport}
             onQuickLoad={onQuickLoad}
             onQuickSave={onQuickSave}
-            setView={setView}
-            addSection={addSection}
+            onSetView={setView}
+            onAddSection={addSection}
+            onOpenSettings={() => setSettingsOpen(true)}
           />
 
           <div className="sticky bottom-0 z-20 h-0">
-            <div className="absolute inset-x-0 bottom-0 h-20 bg-linear-to-t from-background to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-background to-transparent" />
           </div>
         </main>
 
-        <VariablesSidebar
+        <RightAside
           doc={doc}
           onChangeSection={(sIdx, fn) =>
             update((d) => ({
@@ -241,7 +227,7 @@ export function GameDocEditor() {
       </div>
 
       {!!syncModalState && (
-        <SyncModal
+        <SyncAuthModal
           intent={syncModalState}
           open={syncModalState !== null}
           isBusy={isBusy}
@@ -281,38 +267,30 @@ function CenterEditorView({
   doc,
   ctx,
   update,
-  openSettings,
 }: {
   doc: GameDoc
   ctx: Ctx
   update: (fn: (d: GameDoc) => GameDoc) => void
-  openSettings: () => void
 }) {
   const [curSecId, setCurSecId] = useState<string | undefined>(undefined)
 
   return (
-    <div className="h-full space-y-8 p-6">
-      <header className="flex items-start justify-between px-8">
+    <div className="min-h-screen space-y-8 p-6">
+      <header className="relative z-25 flex items-start justify-between">
         <div className="space-y-2">
           <input
             value={doc.title}
             onChange={(e) => update((d) => ({ ...d, title: e.target.value }))}
-            className="w-full bg-transparent text-4xl font-bold tracking-tight outline-none"
+            className="w-full rounded border border-transparent bg-transparent px-1 text-4xl font-bold tracking-tight outline-none focus-visible:border-border"
             placeholder="Document title"
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="ml-1 text-xs text-muted-foreground">
             Last saved {new Date(doc.updatedAt).toLocaleTimeString()} ·
-            auto-saved locally
+            <span className="ml-1 rounded bg-primary-foreground px-1 py-0.5 text-primary">
+              auto-saved locally
+            </span>
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={openSettings}
-          title="Settings"
-          className="flex h-12 shrink-0 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium transition hover:opacity-90"
-        >
-          <Settings />
-        </Button>
       </header>
 
       {doc.sections.length === 0 && (
@@ -356,220 +334,6 @@ function CenterEditorView({
         currentSectionId={curSecId}
         allSections={doc.sections}
       />
-    </div>
-  )
-}
-
-/**
- * SyncModal — handles both "load" and "save" intents.
- *
- * Key changes vs original:
- * - Receives `onSubmit(user, pass, intent)` instead of separate callbacks,
- *   so credential persistence always happens here before the action fires.
- * - `isBusy` / `syncError` come from the hook so state is never duplicated.
- * - `handleSubmit` is typed correctly as `React.FormEvent<HTMLFormElement>`.
- */
-function SyncModal({
-  open,
-  intent,
-  isBusy,
-  syncError,
-  defaultCredentials,
-  onSubmit,
-  onClose,
-}: {
-  open: boolean
-  intent: "save" | "load"
-  isBusy: boolean
-  syncError: string | null
-  defaultCredentials: string | null
-  onSubmit: (pw: string, intent: "save" | "load") => Promise<void>
-  onClose: () => void
-}) {
-  const [field, setField] = useState(defaultCredentials ?? "")
-
-  const canSubmit = field.trim() !== "" && !isBusy
-
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!canSubmit) return
-    await onSubmit(field, intent)
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogTitle>
-          {intent === "save" ? "Save to DB" : "Load from DB"}
-        </DialogTitle>
-        <DialogDescription>
-          Credentials are saved locally and reused for auto-sync.
-        </DialogDescription>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="app-pw">Application Password</Label>
-            <Input
-              type="password"
-              id="app-pw"
-              placeholder="Enter pw..."
-              autoComplete="current-password"
-              value={field}
-              onChange={(e) => setField(e.target.value)}
-            />
-          </div>
-
-          {syncError && (
-            <p className="text-sm font-medium text-red-500">{syncError}</p>
-          )}
-
-          <Button type="submit" disabled={!canSubmit} className="w-full">
-            {isBusy ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {intent === "save" ? "Saving…" : "Loading…"}
-              </span>
-            ) : intent === "save" ? (
-              "Save to DB"
-            ) : (
-              "Load from DB"
-            )}
-          </Button>
-        </form>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function SettingsModal({
-  open,
-  autoSync,
-  onSetOpen,
-  onToggleAutoSync,
-  hasCredentials,
-  onClearCredentials,
-  onClearCurrentDoc,
-}: {
-  open: boolean
-  autoSync: boolean
-  onSetOpen: (open: boolean) => void
-  onToggleAutoSync: () => void
-  hasCredentials: boolean
-  onClearCredentials: () => void
-  onClearCurrentDoc: () => void
-}) {
-  const [showConfirm, setShowConfirm] = useState(false)
-
-  const handleConfirm = () => {
-    onClearCurrentDoc()
-    setShowConfirm(false)
-    onSetOpen(false)
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onSetOpen}>
-      <DialogContent>
-        <DialogTitle>Settings</DialogTitle>
-        <DialogDescription>
-          Choose how you want the editor to behave.
-        </DialogDescription>
-        <div className="space-y-4">
-          <div className="grid grid-cols-[1fr_auto] items-center gap-4">
-            <Label htmlFor="autosync-check">Auto-sync with DB every 30 s</Label>
-            <Switch
-              id="autosync-check"
-              checked={autoSync}
-              onCheckedChange={onToggleAutoSync}
-            />
-          </div>
-
-          {hasCredentials && (
-            <div className="grid grid-cols-[1fr_auto] items-center gap-4">
-              <div>
-                <p className="text-sm font-medium">Saved credentials</p>
-                <p className="text-xs text-muted-foreground">
-                  Clear to re-enter your Atlas endpoint and API key on next
-                  sync.
-                </p>
-              </div>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={onClearCredentials}
-              >
-                Clear
-              </Button>
-            </div>
-          )}
-        </div>
-
-        <DialogFooter className={showConfirm ? "bg-red-800/10" : ""}>
-          {!showConfirm && (
-            <Button onClick={() => setShowConfirm(true)} variant="outline">
-              <Trash2 /> Clear Document
-            </Button>
-          )}
-          {showConfirm && (
-            <div className="flex w-full items-center justify-between">
-              <p className="text-lg">Are you sure?</p>
-              <div className="flex items-center gap-2">
-                <Button onClick={() => setShowConfirm(false)}>Cancel</Button>
-                <Button onClick={handleConfirm} variant="destructive">
-                  Yes
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function SelectProjectTypeModal({
-  updateProjectType,
-}: {
-  updateProjectType: (isNew: boolean) => void
-}) {
-  // Fixed: was always setting true; now correctly tracks the radio selection.
-  const [isNew, setIsNew] = useState(true)
-
-  return (
-    <div className="flex h-screen w-screen flex-col items-center justify-center">
-      <h1 className="mb-2">Are you starting a new project?</h1>
-      <RadioGroup
-        defaultValue="new"
-        onValueChange={(v) => setIsNew(v === "new")}
-        className="max-w-sm"
-      >
-        <FieldLabel htmlFor="new-project">
-          <Field orientation="horizontal">
-            <FieldContent>
-              <FieldTitle>New Project</FieldTitle>
-              <FieldDescription>Ahh, a fresh start.</FieldDescription>
-            </FieldContent>
-            <RadioGroupItem value="new" id="new-project" />
-          </Field>
-        </FieldLabel>
-
-        <FieldLabel htmlFor="not-new-project">
-          <Field orientation="horizontal">
-            <FieldContent>
-              <FieldTitle>Continue Existing</FieldTitle>
-              <FieldDescription>Back on ze grrriiind.</FieldDescription>
-            </FieldContent>
-            {/* Fixed: was incorrectly calling setIsNew(true) */}
-            <RadioGroupItem value="existing" id="not-new-project" />
-          </Field>
-        </FieldLabel>
-
-        <Button
-          onClick={() => updateProjectType(isNew)}
-          variant="outline"
-          size="lg"
-        >
-          Let&apos;s Go
-        </Button>
-      </RadioGroup>
     </div>
   )
 }

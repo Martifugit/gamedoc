@@ -15,6 +15,7 @@ import { ContainerView } from "./ContainerView"
 import { Textarea } from "./ui/textarea"
 import { useEditorInput } from "@/hooks/use-editable-input"
 import { useLocalDraft } from "@/hooks/use-local-draft"
+import { useMoveHighlight } from "@/hooks/use-move-highlight"
 
 export function SectionView({
   section,
@@ -38,6 +39,8 @@ export function SectionView({
   const [showVars, setShowVars] = useState(false)
   const [isStuck, setIsStuck] = useState(false)
   const headerRef = useRef<HTMLDivElement>(null)
+
+  const { ref: sectionRef, highlightMoved, triggerMove } = useMoveHighlight()
 
   useEffect(() => {
     const onScroll = () => {
@@ -84,29 +87,38 @@ export function SectionView({
     })
   }
 
+  const handleMove = (dir: -1 | 1) => {
+    onMove(dir)
+    triggerMove()
+  }
+
   return (
     <section
+      ref={sectionRef}
       id={sectionId(section.id)}
       onMouseEnter={() => onSetCurrentSectionId(section.id)}
       onMouseLeave={() => onSetCurrentSectionId(undefined)}
-      className={
-        "relative scroll-mt-6 rounded-xl border border-border p-6 opacity-75 transition-opacity hover:opacity-100"
-      }
+      className={cn(
+        "relative scroll-mt-6 rounded-xl border p-6 transition-colors",
+        highlightMoved ? "border-blue-500" : "border-border"
+      )}
     >
       <span className="absolute -top-2.5 bg-background px-3 text-sm text-muted-foreground">
         Section
       </span>
-      <div className="sticky top-0 z-5 h-16 bg-linear-to-b from-background to-transparent" />
       <div
         ref={headerRef}
         className={cn(
-          "sticky top-4 z-10 -mt-16 grid h-max grid-cols-1 gap-2 rounded-lg border bg-background/95 p-3 backdrop-blur-2xl supports-backdrop-filter:bg-background/60",
-          isStuck
-            ? "border-border shadow-lg shadow-black/40"
-            : "border-transparent"
+          "sticky top-4 z-25 grid h-max grid-cols-1 gap-2 rounded-lg border bg-background py-3 transition-all",
+          isStuck ? "border-border px-4" : "border-transparent px-0"
         )}
       >
-        <div className="flex items-center gap-2">
+        <div
+          className={cn(
+            "flex items-center gap-2 transition-[margin]",
+            showVars ? "mb-2" : "mb-0"
+          )}
+        >
           <SectionTitleInput onChange={onChange} title={section.title} />
 
           <Button
@@ -122,7 +134,7 @@ export function SectionView({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onMove(-1)}
+            onClick={() => handleMove(-1)}
             title="Move up"
           >
             <ChevronRight className="h-4 w-4 -rotate-90" />
@@ -130,7 +142,7 @@ export function SectionView({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onMove(1)}
+            onClick={() => handleMove(1)}
             title="Move down"
           >
             <ChevronRight className="h-4 w-4 rotate-90" />
@@ -228,11 +240,12 @@ function SectionTitleInput({
 
   return (
     <input
+      spellCheck="false"
       value={draft.value}
       onBlur={draft.onBlur}
       onChange={(e) => draft.onChange(e.target.value)}
-      className="min-w-0 flex-1 bg-transparent text-2xl font-semibold tracking-tight outline-none"
-      placeholder="Section title"
+      className="min-w-0 flex-1 rounded border border-transparent bg-transparent px-1 text-2xl tracking-tight outline-none focus-visible:border-border"
+      placeholder="New Section Title..."
     />
   )
 }

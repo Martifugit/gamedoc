@@ -11,46 +11,63 @@ import {
   FileDown,
   //   FileJson2,
   Loader2,
+  MoreVertical,
   Pencil,
   Plus,
   Save,
+  Settings,
   Upload,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { exportToPdf } from "@/lib/pdf-export"
 import { ButtonGroup } from "./button-group"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu"
+import { useCallback } from "react"
 
 interface EditorToolbarProps {
   syncStatus: SyncStatus
   view: EditorView
-  addSection: () => void
-  setView: React.Dispatch<React.SetStateAction<EditorView>>
   fileRef: React.RefObject<HTMLInputElement | null>
+  isBusy: boolean
+  doc: GameDoc | null
+  ctx: Ctx | null
+  onOpenSettings: () => void
+  onAddSection: () => void
+  onSetView: React.Dispatch<React.SetStateAction<EditorView>>
   onExport: () => void
   onQuickLoad: () => Promise<void>
-  isBusy: boolean
   onQuickSave: () => Promise<void>
-  doc: GameDoc
-  ctx: Ctx
 }
 
 export function EditorToolbar({
   syncStatus,
   view,
-  addSection,
-  setView,
   fileRef,
-  onExport,
-  onQuickLoad,
   isBusy,
-  onQuickSave,
   doc,
   ctx,
+  onOpenSettings,
+  onAddSection,
+  onSetView,
+  onQuickSave,
+  onExport,
+  onQuickLoad,
 }: EditorToolbarProps) {
+  const onUpload = useCallback(() => {
+    fileRef.current?.click()
+  }, [fileRef])
+
   return (
-    <div className="sticky bottom-6 z-50 mx-auto flex max-w-200 px-4">
+    <div className="fixed inset-x-4 bottom-0 z-50 mx-auto flex max-w-200 md:sticky md:bottom-6 md:px-4">
       {/* Sync status banner */}
-      <SyncStatusBanner status={syncStatus} />
+      <SyncStatusBanner
+        status={!doc || !ctx ? { state: "loading" } : syncStatus}
+      />
 
       <div className="absolute inset-x-0 bottom-0 z-1 grid w-full flex-1 grid-cols-3 gap-4 rounded-lg border bg-background/75 p-2 shadow-lg shadow-black/40 backdrop-blur-2xl">
         <div className="col-start-1 col-end-1">
@@ -58,7 +75,7 @@ export function EditorToolbar({
             <Button
               variant="outline"
               size="default"
-              onClick={addSection}
+              onClick={onAddSection}
               className="flex h-full shrink-0 rounded-sm font-medium"
             >
               <Plus /> New Section
@@ -90,7 +107,7 @@ export function EditorToolbar({
             ).map(({ id, icon, title }) => ({
               slot: icon,
               title: title,
-              onClick: () => setView(id),
+              onClick: () => onSetView(id),
               selected: view === id,
             }))}
           />
@@ -98,20 +115,10 @@ export function EditorToolbar({
 
         {/* File & DB actions */}
         <div className="col-start-3 col-end-3 flex items-center justify-end gap-2">
-          <ButtonGroup
-            contents={[
-              {
-                slot: <Upload />,
-                title: "Import JSON",
-                onClick: () => fileRef.current?.click(),
-              },
-              {
-                slot: <Download />,
-                title: "Export JSON",
-                onClick: onExport,
-              },
-            ]}
-          />
+          {/* <ButtonGroup
+            className="hidden md:flex"
+            contents={importExportButtonContents}
+          /> */}
 
           <ButtonGroup
             contents={[
@@ -140,15 +147,53 @@ export function EditorToolbar({
             ]}
           />
 
-          <Button
+          {/* <Button
             variant="outline"
             size="icon-lg"
-            onClick={() => exportToPdf(doc, ctx)}
+            onClick={() => {
+              if (!ctx || !doc) return
+              exportToPdf(doc, ctx)
+            }}
+            disabled={!ctx || !doc}
             title="Export PDF"
-            className="rounded-sm"
+            className="hidden rounded-sm md:flex"
           >
             <FileDown />
-          </Button>
+          </Button> */}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon-lg"
+                title="More actions"
+                className="rounded-sm"
+              >
+                <MoreVertical />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              className="w-40 space-y-2"
+              side="top"
+              align="end"
+            >
+              <DropdownMenuItem onClick={onUpload}>
+                <Upload /> Import JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onExport}>
+                <Download /> Export JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => ctx && doc && exportToPdf(doc, ctx)}
+              >
+                <FileDown /> Export as PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onOpenSettings}>
+                <Settings /> Settings
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>

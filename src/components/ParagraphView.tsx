@@ -42,7 +42,7 @@ export function ParagraphView({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 pr-12">
       <Textarea
         // ref={taRef}
         ref={ref}
@@ -68,6 +68,7 @@ export function ParagraphView({
           onClick={() => setShowPreview(!showPreview)}
           size={"sm"}
           variant="ghost"
+          disabled={localText.trim() === ""}
           className={showPreview ? "bg-muted hover:bg-muted/90" : ""}
         >
           {showPreview ? <>Hide Preview</> : <>Show preview</>}

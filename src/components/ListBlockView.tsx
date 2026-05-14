@@ -102,7 +102,7 @@ export function ListBlockView({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="group/list-block space-y-2">
       <div className="flex items-center gap-1 pr-12">
         <HeadingSelect
           value={block.headingLevel ?? 5}
@@ -123,7 +123,7 @@ export function ListBlockView({
       </div>
       <ul
         onBlur={handleListBlur}
-        className={`space-y-1 pl-5 ${block.ordered ? "list-decimal" : "list-disc"}`}
+        className={`space-y-1 pr-12 pl-5 ${block.ordered ? "list-decimal" : "list-disc"}`}
       >
         {items.map((item, i) => (
           <li
@@ -232,8 +232,9 @@ const ListItemInput = memo(function ListItemInput({
       onChange={(e) => onUpdate(index, e.target.value)}
       onFocus={() => onFocus(index)}
       onKeyDown={(e) => onKeyDown(e, index, value)}
-      className="flex-1 bg-transparent outline-none"
+      className="flex-1 rounded-md border border-transparent bg-transparent px-2 text-sm outline-none focus-visible:border-border"
       placeholder="Item"
+      spellCheck="false"
     />
   )
 })

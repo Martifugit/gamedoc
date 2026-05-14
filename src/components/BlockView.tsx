@@ -12,6 +12,7 @@ import { ParagraphView } from "./ParagraphView"
 import { ListBlockView } from "./ListBlockView"
 import { TableBlockView } from "./TableBlockView"
 import { Button } from "./ui/button"
+import { CopyButton } from "./copy-button"
 
 export function BlockView({
   block,
@@ -28,23 +29,30 @@ export function BlockView({
 }) {
   return (
     <div className="group/block relative rounded-md border border-transparent p-2 hover:border-border/40">
-      <div className="absolute top-2 right-2 z-10 opacity-0 transition-opacity group-hover/block:opacity-100">
+      <div className="absolute top-2 right-2 z-10 flex flex-col justify-center gap-1 opacity-0 transition-opacity group-hover/block:opacity-100">
         <ConfirmDelete
           title="Delete this block?"
           description="The content in this block will be removed."
           onConfirm={onRemove}
           trigger={
             <Button
-              className="relative z-1 opacity-0 transition-opacity group-hover:opacity-100"
+              className="relative z-1 h-8.5 w-8.5 opacity-0 transition-opacity group-hover:opacity-100"
               title="Delete block"
               variant={"ghost"}
             >
-              <Trash2 className="h-4 w-4 text-destructive" />
+              <Trash2 className="text-destructive" />
             </Button>
           }
         />
+        <CopyButton
+          item={{
+            data: block,
+            kind: "block",
+          }}
+          className="h-8.5 w-8.5 opacity-0 transition-opacity group-hover/block:opacity-100"
+        />
       </div>
-      <div className="pr-12">
+      <div className="pr-2">
         {block.type === "paragraph" && (
           <ParagraphView
             block={block}
