@@ -89,6 +89,7 @@ export function ReferencePicker({
       getItems={getItems}
       emptyMessage="No headings"
       width="w-72"
+      title="Focus a field, then use this to add a Heading Reference"
     />
   )
 }

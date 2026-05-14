@@ -196,6 +196,7 @@ export function ListBlockView({
           size={"sm"}
           variant="ghost"
           className={showPreview ? "bg-muted hover:bg-muted/90" : ""}
+          title={`${showPreview ? "Hide" : "Show"} Preview with resolved References`}
         >
           {showPreview ? <>Hide Preview</> : <>Show preview</>}
         </Button>

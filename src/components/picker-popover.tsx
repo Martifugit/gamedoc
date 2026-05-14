@@ -26,6 +26,7 @@ export interface PickerPopoverProps<T> {
   emptyMessage?: string
   /** Width of the popover (Tailwind w-* class, default "w-72") */
   width?: string
+  title?: string
 }
 
 export function PickerPopover<T>({
@@ -37,6 +38,7 @@ export function PickerPopover<T>({
   getItems,
   emptyMessage = "No results",
   width = "w-72",
+  title,
 }: PickerPopoverProps<T> & { ref?: React.Ref<PickerHandle> }) {
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState("")
@@ -88,7 +90,12 @@ export function PickerPopover<T>({
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs">
+        <Button
+          size="sm"
+          variant="ghost"
+          title={title}
+          className="h-7 gap-1 text-xs"
+        >
           {icon} {label}
         </Button>
       </PopoverTrigger>

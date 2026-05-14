@@ -6,7 +6,7 @@ import {
   type Variable,
   newSection,
 } from "@/lib/gamedoc-types"
-import { RotateCcw } from "lucide-react"
+import { Edit, RotateCcw } from "lucide-react"
 
 import { slug } from "@/lib/utils"
 import { buildHeadingsMap } from "@/lib/reference-syntax"
@@ -183,9 +183,18 @@ export function GameDocEditor() {
           onReorder={(next) => update(() => next)}
         />
 
-        <main className="relative min-w-0 flex-1 space-y-8 pt-6">
-          <div className="sticky top-0 z-20 h-0">
-            <div className="absolute inset-x-0 top-0 h-32 bg-linear-to-b from-background via-background to-transparent" />
+        <main className="relative min-w-0 flex-1 space-y-8">
+          <div className="sticky inset-x-0 top-0 z-20 h-0">
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 h-32"
+              style={{
+                maskImage:
+                  "linear-gradient(to bottom, black 0%, black 10%, transparent 100%)",
+                WebkitMaskImage:
+                  "linear-gradient(to bottom, black 0%, black 10%, transparent 100%)",
+                background: "var(--background)",
+              }}
+            />
           </div>
 
           {doc && view === "editor" && (
@@ -210,8 +219,17 @@ export function GameDocEditor() {
             onOpenSettings={() => setSettingsOpen(true)}
           />
 
-          <div className="sticky bottom-0 z-20 h-0">
-            <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-background to-transparent" />
+          <div className="sticky inset-x-0 bottom-0 z-20 h-0">
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
+              style={{
+                maskImage:
+                  "linear-gradient(to top, black 0%, black 10%, transparent 100%)",
+                WebkitMaskImage:
+                  "linear-gradient(to top, black 0%, black 10%, transparent 100%)",
+                background: "var(--background)",
+              }}
+            />
           </div>
         </main>
 
@@ -276,14 +294,17 @@ function CenterEditorView({
 
   return (
     <div className="min-h-screen space-y-8 p-6">
-      <header className="relative z-25 flex items-start justify-between">
+      <header className="group/header relative z-25 flex items-start justify-between [&:focus-within_.edit-icon]:opacity-0">
         <div className="space-y-2">
-          <input
-            value={doc.title}
-            onChange={(e) => update((d) => ({ ...d, title: e.target.value }))}
-            className="w-full rounded border border-transparent bg-transparent px-1 text-4xl font-bold tracking-tight outline-none focus-visible:border-border"
-            placeholder="Document title"
-          />
+          <div className="relative">
+            <input
+              value={doc.title}
+              onChange={(e) => update((d) => ({ ...d, title: e.target.value }))}
+              className="w-full rounded border border-transparent bg-transparent px-1 text-2xl font-black tracking-tight text-blue-500 outline-none focus-visible:border-border"
+              placeholder="Document title"
+            />
+            <Edit className="edit-icon absolute top-1/2 right-1 h-4 w-4 -translate-y-1/2 opacity-0 group-hover/header:opacity-100" />
+          </div>
           <p className="ml-1 text-xs text-muted-foreground">
             Last saved {new Date(doc.updatedAt).toLocaleTimeString()} ·
             <span className="ml-1 rounded bg-primary-foreground px-1 py-0.5 text-primary">

@@ -31,7 +31,7 @@ const formatDate = (timestamp: number) => {
 // Paragraph block renderer
 const ParagraphBlock = ({ text, ctx }: { text: string; ctx: Ctx }) => {
   return (
-    <div className="prose-invert text-sm leading-relaxed text-muted-foreground">
+    <div className="text-sm leading-relaxed text-pretty text-muted-foreground">
       <RenderInline text={text} ctx={ctx} />
     </div>
   )
@@ -267,13 +267,13 @@ const SectionRenderer = ({ section, ctx }: { section: Section; ctx: Ctx }) => {
           {section.title}
         </h2>
         {section.description && (
-          <p className="text-sm leading-relaxed text-muted-foreground">
+          <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
             <RenderInline text={section.description} ctx={ctx} />
           </p>
         )}
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-8 rounded-bl-xl border-b border-l border-dashed border-border/60 pb-4 pl-4">
         {section.containers.map((container: Container) => (
           <ContainerRenderer
             key={container.id}
@@ -282,11 +282,11 @@ const SectionRenderer = ({ section, ctx }: { section: Section; ctx: Ctx }) => {
             parentSectionId={section.id}
           />
         ))}
-      </div>
 
-      {section.variables && section.variables.length > 0 && (
-        <VariablesTable variables={section.variables} ctx={ctx} />
-      )}
+        {section.variables && section.variables.length > 0 && (
+          <VariablesTable variables={section.variables} ctx={ctx} />
+        )}
+      </div>
     </section>
   )
 }
@@ -327,17 +327,16 @@ export function GameDocPreview({ doc, className, ctx }: GameDocPreviewProps) {
 
   return (
     <div className={cn("relative flex min-h-screen flex-col", className)}>
-      <div className="sticky top-0 z-30 h-16 border-b border-border bg-background">
+      <div className="sticky top-0 z-30 border-b border-border bg-background">
         <ScrollProgressBar />
         <div className="relative z-2 px-6 py-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h1 className="text-2xl font-black text-foreground">{doc.title}</h1>
+          <div className="flex flex-col items-center justify-between gap-3 md:flex-row md:items-end">
+            <h1 className="text-2xl font-black text-blue-500">{doc.title}</h1>
             <span className="font-mono text-xs text-foreground/40">
               Updated {formatDate(doc.updatedAt)}
             </span>
           </div>
         </div>
-        <div className="absolute inset-x-0 top-16 z-1 h-10 bg-linear-to-b from-background to-transparent" />
       </div>
 
       <main className="h-full px-6 py-8">

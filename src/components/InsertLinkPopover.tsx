@@ -29,7 +29,12 @@ export function InsertLinkPopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger ref={popoverRef} asChild>
-        <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs">
+        <Button
+          size="sm"
+          variant="ghost"
+          title="Focus a field, then use this to add a real external Link"
+          className="h-7 gap-1 text-xs"
+        >
           <ExternalLink className="h-3 w-3" /> Link
         </Button>
       </PopoverTrigger>

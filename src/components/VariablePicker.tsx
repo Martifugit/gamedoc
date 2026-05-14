@@ -79,6 +79,7 @@ export function VariablePicker({
       getItems={getItems}
       emptyMessage="No variables match"
       width="w-80"
+      title="Focus a field, then use this to add a Variable Reference"
     />
   )
 }

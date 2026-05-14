@@ -78,7 +78,7 @@ export function KeyValueView({
       <span className="absolute -top-2 bg-background px-3 text-xs text-muted-foreground">
         Key-value Set
       </span>
-      <div className="mt-1 mb-3 flex items-center justify-between gap-1">
+      <div className="mt-1 mb-3 flex items-center justify-between gap-0.5">
         <input
           value={local.subtitle ?? ""}
           onChange={(e) =>
@@ -90,6 +90,7 @@ export function KeyValueView({
         />
 
         <CopyButton
+          className="h-8 w-8"
           item={{
             data: keyValue,
             kind: "keyvalue",
@@ -97,9 +98,11 @@ export function KeyValueView({
         />
 
         <Button
+          className="h-8 w-8"
           size="icon"
           variant="ghost"
           onClick={() => setExpanded(!expanded)}
+          title={expanded ? "Collapse" : "Expand"}
         >
           {expanded ? (
             <ChevronUp className="h-4 w-4" />
@@ -114,7 +117,7 @@ export function KeyValueView({
           onConfirm={onRemove}
           trigger={
             <Button
-              className="relative z-1 opacity-0 transition-opacity group-hover:opacity-100"
+              className="relative z-1 h-8 w-8 transition-opacity group-hover:opacity-100 md:opacity-0"
               title="Delete block"
               variant={"ghost"}
             >
@@ -172,7 +175,7 @@ export function KeyValueView({
         </dl>
       )}
 
-      <div className="mt-2 flex items-center justify-start gap-2">
+      <div className="mt-2 flex items-start justify-start gap-2 md:items-center">
         <div className="w-40">
           <Button
             size="sm"
@@ -193,7 +196,7 @@ export function KeyValueView({
             <Plus className="h-3.5 w-3.5" /> Add pair
           </Button>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
           <InsertLinkPopover onInsert={insert} />
           <ReferencePicker
             allSections={allSections}
@@ -208,6 +211,7 @@ export function KeyValueView({
             variant="ghost"
             className={showPreview ? "bg-muted hover:bg-muted/90" : ""}
             onClick={() => setShowPreview(!showPreview)}
+            title={`${showPreview ? "Hide" : "Show"} Preview with resolved References`}
           >
             {showPreview ? "Hide preview" : "Show preview"}
           </Button>
@@ -254,7 +258,7 @@ export function Pair({
         ref={mergedKeyInputRef}
         value={pair.key}
         placeholder="Key"
-        className="h-7 w-40 rounded-md border-border/75 bg-transparent! text-sm"
+        className="h-7 w-40 rounded-md border-border/75 bg-transparent! text-sm text-muted-foreground"
         onFocus={() => {
           focusedRef.current = { index: index, field: "key" }
         }}
@@ -279,7 +283,7 @@ export function Pair({
         ref={mergedValueInputRef}
         value={pair.value}
         placeholder="Value"
-        className="h-7 flex-1 rounded-md border-border/75 bg-transparent! text-sm"
+        className="h-7 flex-1 rounded-md border-border/75 bg-transparent! text-sm text-muted-foreground"
         onFocus={() => {
           focusedRef.current = { index: index, field: "value" }
         }}
@@ -304,7 +308,7 @@ export function Pair({
       <Button
         size="icon"
         variant="ghost"
-        className="opacity-0 transition-opacity group-hover/pair:opacity-100"
+        className="h-8 w-8 transition-opacity group-hover/pair:opacity-100 md:opacity-0"
         onClick={() => {
           setLocal((prev) => ({
             ...prev,

@@ -42,7 +42,7 @@ export function ParagraphView({
   }
 
   return (
-    <div className="space-y-2 pr-12">
+    <div className="space-y-2 pr-8 md:pr-12">
       <Textarea
         // ref={taRef}
         ref={ref}
@@ -50,10 +50,10 @@ export function ParagraphView({
         onChange={(e) => setLocalText(e.currentTarget.value)}
         onBlur={() => onChange((b) => ({ ...b, text: localText }))}
         placeholder="Write a paragraph…"
-        className="min-h-18 resize-none border-transparent bg-transparent leading-relaxed text-muted-foreground focus-visible:border-border focus-visible:ring-0"
+        className="min-h-18 resize-none border-transparent bg-transparent text-sm leading-relaxed text-muted-foreground focus-visible:border-border focus-visible:ring-0 md:text-base"
       />
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between gap-2 md:items-center">
+        <div className="flex flex-wrap items-center gap-2">
           <InsertLinkPopover onInsert={insert} />
           <ReferencePicker
             allSections={allSections}
@@ -70,6 +70,7 @@ export function ParagraphView({
           variant="ghost"
           disabled={localText.trim() === ""}
           className={showPreview ? "bg-muted hover:bg-muted/90" : ""}
+          title={`${showPreview ? "Hide" : "Show"} Preview with resolved References`}
         >
           {showPreview ? <>Hide Preview</> : <>Show preview</>}
         </Button>
