@@ -380,14 +380,14 @@ function CenterEditorView({
   const [curSecId, setCurSecId] = useState<string | undefined>(undefined)
 
   return (
-    <div className="min-h-screen space-y-8 p-6">
-      <header className="group/header relative z-25 flex items-start justify-between [&:focus-within_.edit-icon]:opacity-0">
+    <div className="min-h-screen space-y-6 px-2 md:space-y-8 md:p-6">
+      <header className="group/header relative z-25 flex items-start justify-center text-center md:justify-between md:text-left [&:focus-within_.edit-icon]:opacity-0">
         <div className="space-y-2">
           <div className="relative">
             <input
               value={doc.title}
               onChange={(e) => update((d) => ({ ...d, title: e.target.value }))}
-              className="w-full rounded border border-transparent bg-transparent px-1 text-2xl font-black tracking-tight text-blue-500 outline-none focus-visible:border-border"
+              className="w-full rounded border border-transparent bg-transparent px-1 text-center text-2xl font-black tracking-tight text-blue-500 outline-none focus-visible:border-border"
               placeholder="Document title"
             />
             <Edit className="edit-icon absolute top-1/2 right-1 h-4 w-4 -translate-y-1/2 opacity-0 group-hover/header:opacity-100" />
@@ -407,37 +407,40 @@ function CenterEditorView({
         </div>
       )}
 
-      {doc.sections.map((section, sIdx) => (
-        <SectionView
-          onSetCurrentSectionId={setCurSecId}
-          key={section.id}
-          section={section}
-          ctx={ctx}
-          allSections={doc.sections}
-          onChange={(updater) =>
-            update((d) => ({
-              ...d,
-              sections: d.sections.map((s, i) => (i === sIdx ? updater(s) : s)),
-            }))
-          }
-          onRemove={() =>
-            update((d) => ({
-              ...d,
-              sections: d.sections.filter((_, i) => i !== sIdx),
-            }))
-          }
-          onMove={(dir) =>
-            update((d) => {
-              const arr = [...d.sections]
-              const j = sIdx + dir
-              if (j < 0 || j >= arr.length) return d
-              ;[arr[sIdx], arr[j]] = [arr[j], arr[sIdx]]
-              return { ...d, sections: arr }
-            })
-          }
-        />
-      ))}
-
+      <div className="space-y-10">
+        {doc.sections.map((section, sIdx) => (
+          <SectionView
+            onSetCurrentSectionId={setCurSecId}
+            key={section.id}
+            section={section}
+            ctx={ctx}
+            allSections={doc.sections}
+            onChange={(updater) =>
+              update((d) => ({
+                ...d,
+                sections: d.sections.map((s, i) =>
+                  i === sIdx ? updater(s) : s
+                ),
+              }))
+            }
+            onRemove={() =>
+              update((d) => ({
+                ...d,
+                sections: d.sections.filter((_, i) => i !== sIdx),
+              }))
+            }
+            onMove={(dir) =>
+              update((d) => {
+                const arr = [...d.sections]
+                const j = sIdx + dir
+                if (j < 0 || j >= arr.length) return d
+                ;[arr[sIdx], arr[j]] = [arr[j], arr[sIdx]]
+                return { ...d, sections: arr }
+              })
+            }
+          />
+        ))}
+      </div>
       <ReferencesToolbar
         currentSectionId={curSecId}
         allSections={doc.sections}

@@ -80,9 +80,9 @@ export function EditorToolbar({
               variant="outline"
               size="default"
               onClick={onAddSection}
-              className="flex h-full shrink-0 rounded-sm font-medium"
+              className="flex h-full shrink-0 rounded-sm text-sm font-medium"
             >
-              <Plus /> New Section
+              <Plus /> Section
             </Button>
           )}
         </div>
@@ -119,33 +119,6 @@ export function EditorToolbar({
 
         {/* File & DB actions */}
         <div className="col-start-3 col-end-3 flex items-center justify-end gap-2">
-          <ButtonGroup
-            contents={[
-              {
-                slot:
-                  syncStatus.state === "loading" ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <DatabaseBackup />
-                  ),
-                title: "Load latest from DB",
-                disabled: isBusy,
-                onClick: onQuickLoad,
-              },
-              {
-                slot:
-                  syncStatus.state === "saving" ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Save />
-                  ),
-                title: "Save to DB",
-                disabled: isBusy || !doc || !authorized,
-                onClick: onQuickSave,
-              },
-            ]}
-          />
-
           <Button
             variant="outline"
             size="default"
@@ -174,6 +147,25 @@ export function EditorToolbar({
               side="top"
               align="end"
             >
+              <DropdownMenuItem onClick={onQuickLoad}>
+                {syncStatus.state === "loading" ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <DatabaseBackup />
+                )}{" "}
+                Load from DB
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={isBusy || !doc || !authorized}
+                onClick={onQuickSave}
+              >
+                {syncStatus.state === "saving" ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Save />
+                )}{" "}
+                Save to DB
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={onUpload}>
                 <Upload /> Import JSON
               </DropdownMenuItem>

@@ -63,6 +63,7 @@ export function SidebarShell({
 }: SidebarShellProps) {
   const [open, setOpen] = useState(false)
   const [closedAndSettled, setClosedAndSettled] = useState(true)
+
   const isMobile = useIsMobile()
 
   // Keyboard shortcut — same logic the original components used
@@ -117,10 +118,11 @@ export function SidebarShell({
     return (
       <>
         <Button
-          size="icon-lg"
+          size="icon-sm"
+          variant={"outline"}
           className={cn(
             "fixed z-40",
-            side === "left" ? "top-4 left-4" : "top-4 right-4"
+            side === "left" ? "top-8 left-4" : "top-8 right-4"
           )}
           title={`Open Sidebar`}
           onClick={() => {
@@ -171,8 +173,8 @@ export function SidebarShell({
       className={cn(
         "group relative min-h-screen shrink-0 border-border/50 px-4 py-6 transition-[width] duration-200",
         side === "left" ? "border-r" : "border-l",
-        open ? "w-72" : "w-12",
-        !open && closedAndSettled && "hover:bg-primary/3",
+        open ? "w-72" : "w-12 bg-muted/5",
+        !open && closedAndSettled && "hover:bg-muted/10",
         className
       )}
       onTransitionEnd={() => {

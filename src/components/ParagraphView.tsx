@@ -61,7 +61,7 @@ export function ParagraphView({
     <div
       id={blockId(block.id)}
       className={cn(
-        "scroll-mt-30 space-y-2 rounded-md pr-8 ring-1 ring-transparent md:pr-12",
+        "scroll-mt-30 space-y-2 rounded-md ring-1 ring-transparent",
         highlightComment && "ring-blue-500"
       )}
     >

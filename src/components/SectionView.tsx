@@ -1,6 +1,7 @@
 import {
   ChevronRight,
   Edit,
+  MoreVertical,
   Plus,
   Trash2,
   Variable as VarIcon,
@@ -25,6 +26,12 @@ import { useMoveHighlight } from "@/hooks/use-move-highlight"
 import { useIsStuck } from "@/hooks/use-is-stuck"
 import { CommentsPopover } from "./comments"
 import { useScopeHighlight } from "@/hooks/use-scope-highlight"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu"
 
 export function SectionView({
   section,
@@ -94,12 +101,13 @@ export function SectionView({
 
   return (
     <section
+      data-editor-section
       ref={sectionRef}
       id={sectionId(section.id)}
       onMouseEnter={() => onSetCurrentSectionId(section.id)}
       onMouseLeave={() => onSetCurrentSectionId(undefined)}
       className={cn(
-        "relative scroll-mt-12 rounded-xl border border-border px-6 pt-4 pb-6 ring-1 ring-transparent transition-colors",
+        "relative scroll-mt-12 rounded-xl border border-border px-3 pt-6 pb-4 ring-1 ring-transparent transition-colors md:px-6 md:pt-4 md:pb-6",
         (highlightMoved || highlightComment) && "ring-blue-500"
       )}
     >
@@ -243,7 +251,9 @@ function SectionHeader({
       ref={headerRef}
       className={cn(
         "sticky top-4 z-25 grid h-max grid-cols-1 gap-2 rounded-lg border bg-background pt-3 transition-all",
-        isStuck ? "-mx-3 border-border px-4" : "mx-0 border-transparent px-0",
+        isStuck
+          ? "-mx-4 border-border px-12 md:-mx-3 md:px-4"
+          : "mx-0 border-transparent px-0",
         showVars ? "pb-6" : "pb-3"
       )}
     >
@@ -256,62 +266,15 @@ function SectionHeader({
         {/* flex-1 + min-w-0 lets the input grow without overflowing */}
         <SectionTitleInput onChange={onChange} title={section.title} />
 
-        <div className="flex shrink-0 items-center gap-0.5">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "h-10 w-10 gap-1",
-              showVars && "bg-muted hover:bg-muted/90"
-            )}
-            onClick={() => setShowVars((v) => !v)}
-            title="Variables"
-          >
-            <VarIcon />
-            <span className="text-xs">{section.variables.length}</span>
-          </Button>
-          <Button
-            className="h-10 w-10"
-            variant="ghost"
-            size="sm"
-            onClick={() => onMove(-1)}
-            title="Move up"
-          >
-            <ChevronRight className="-rotate-90" />
-          </Button>
-          <Button
-            className="h-10 w-10"
-            variant="ghost"
-            size="sm"
-            onClick={() => onMove(1)}
-            title="Move down"
-          >
-            <ChevronRight className="rotate-90" />
-          </Button>
-
-          <CommentsPopover
-            triggerClassName="h-10 w-10"
-            scope={{ kind: "section", sectionId: section.id }}
-          />
-
-          <ConfirmDelete
-            title="Delete this section?"
-            description={`"${section.title || "Untitled"}" and all its containers and variables will be removed.`}
-            onConfirm={onRemove}
-            trigger={
-              <Button
-                className="h-10 w-10"
-                variant="ghost"
-                size="icon"
-                title="Delete section"
-              >
-                <Trash2 className="text-destructive" />
-              </Button>
-            }
-          />
-        </div>
+        <SectionActions
+          onMove={onMove}
+          onRemove={onRemove}
+          onSetShowVars={setShowVars}
+          section={section}
+          showVars={showVars}
+          varsCount={section.variables.length}
+        />
       </div>
-
       {showVars && (
         <VariablesPanel
           section={section}
@@ -319,6 +282,128 @@ function SectionHeader({
           onClose={() => setShowVars(false)}
         />
       )}
+    </div>
+  )
+}
+
+function SectionActions({
+  onMove,
+  onRemove,
+  onSetShowVars,
+  section,
+  showVars,
+  varsCount,
+}: {
+  showVars: boolean
+  section: Section
+  varsCount: number
+  onSetShowVars: React.Dispatch<React.SetStateAction<boolean>>
+  onMove: (dir: 1 | -1) => void
+  onRemove: () => void
+}) {
+  return (
+    <div className="flex shrink-0 items-center gap-0.5">
+      <div className="hidden items-center gap-0.5 md:flex">
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            "h-10 w-10 gap-1",
+            showVars && "bg-muted hover:bg-muted/90"
+          )}
+          onClick={() => onSetShowVars((v) => !v)}
+          title="Variables"
+        >
+          <VarIcon />
+          <span className="text-xs">{varsCount}</span>
+        </Button>
+        <Button
+          className="h-10 w-10"
+          variant="ghost"
+          size="sm"
+          onClick={() => onMove(-1)}
+          title="Move up"
+        >
+          <ChevronRight className="-rotate-90" />
+        </Button>
+        <Button
+          className="h-10 w-10"
+          variant="ghost"
+          size="sm"
+          onClick={() => onMove(1)}
+          title="Move down"
+        >
+          <ChevronRight className="rotate-90" />
+        </Button>
+
+        <CommentsPopover
+          triggerClassName="h-10 w-10"
+          scope={{ kind: "section", sectionId: section.id }}
+        />
+
+        <ConfirmDelete
+          title="Delete this section?"
+          description={`"${section.title || "Untitled"}" and all its containers and variables will be removed.`}
+          onConfirm={onRemove}
+          trigger={
+            <Button
+              className="h-10 w-10"
+              variant="ghost"
+              size="icon"
+              title="Delete section"
+            >
+              <Trash2 className="text-destructive" />
+            </Button>
+          }
+        />
+      </div>
+
+      <CommentsPopover
+        triggerClassName="md:hidden flex h-8 w-8"
+        scope={{ kind: "section", sectionId: section.id }}
+      />
+
+      {/* Mobile */}
+      <div className="flex md:hidden">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-40 space-y-1" align="end">
+            <DropdownMenuItem onClick={() => onMove(-1)}>
+              <ChevronRight className="h-4 w-4 -rotate-90" />
+              Move Up
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onMove(1)}>
+              <ChevronRight className="h-4 w-4 rotate-90" />
+              Move Down
+            </DropdownMenuItem>
+
+            <DropdownMenuItem onClick={() => onSetShowVars((v) => !v)}>
+              <VarIcon />
+              Show Variables
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <ConfirmDelete
+                title="Delete this section?"
+                description={`"${section.title || "Untitled"}" and its contents will be removed.`}
+                onConfirm={onRemove}
+                trigger={
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2 px-1! hover:bg-destructive/10!"
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                    <span className="text-destructive">Delete</span>
+                  </Button>
+                }
+              />
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   )
 }

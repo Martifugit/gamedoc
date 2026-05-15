@@ -94,7 +94,7 @@ export function ContainerView({
       ref={containerRef}
       id={headingId(secId, container.id)}
       className={cn(
-        "group relative scroll-mt-26 rounded-lg border border-border/60 p-4 ring-1 ring-transparent transition-colors",
+        "group relative scroll-mt-26 rounded-lg border border-border/60 px-2 py-4 ring-1 ring-transparent transition-colors md:p-4",
         (highlightComment || highlightMoved) && "ring-blue-500"
       )}
     >
@@ -273,14 +273,14 @@ export function ContainerActions({
 }: ContainerActionsProps) {
   return (
     <div className="flex items-center gap-0.5">
-      <RefCopyButton
-        sectionId={secId}
-        containerId={container.id}
-        name={container.title}
-      />
-
       {/* Desktop */}
       <div className="hidden items-center gap-0.5 md:flex">
+        <RefCopyButton
+          sectionId={secId}
+          containerId={container.id}
+          name={container.title}
+        />
+
         <Button variant="ghost" size="icon" onClick={() => onMove(-1)}>
           <ChevronRight className="h-4 w-4 -rotate-90" />
         </Button>
@@ -325,6 +325,15 @@ export function ContainerActions({
           }
         />
       </div>
+
+      <CommentsPopover
+        triggerClassName="h-8 w-8"
+        scope={{
+          kind: "container",
+          sectionId: secId,
+          containerId: container.id,
+        }}
+      />
 
       {/* Mobile */}
       <div className="flex md:hidden">

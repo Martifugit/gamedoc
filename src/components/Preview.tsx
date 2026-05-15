@@ -14,6 +14,14 @@ import type React from "react"
 import { RenderInline } from "./RenderInline"
 import ScrollProgressBar from "./scroll-progress"
 import { Fragment } from "react"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table"
 
 interface GameDocPreviewProps {
   doc: GameDoc
@@ -99,39 +107,36 @@ const TableBlock = ({
   return (
     <div
       id={createBlockId(blockId)}
-      className="scroll-mt-32 overflow-x-auto rounded border border-border/70"
+      className="scrollbar-hidden scroll-mt-32 overflow-x-auto rounded-md border"
     >
-      <table className="w-full text-sm">
-        <thead className="bg-muted/20">
-          <tr className="border-b border-border/70">
+      <Table scrollbarHidden className="min-w-max border-border/20">
+        <TableHeader>
+          <TableRow className="bg-muted/15">
             {headers.map((header, idx) => (
-              <th
+              <TableHead
+                className="border-border/50 px-4 not-last:border-r"
                 key={idx}
-                className="px-4 py-3 text-left font-semibold text-foreground"
               >
                 <RenderInline text={header} ctx={ctx} />
-              </th>
+              </TableHead>
             ))}
-          </tr>
-        </thead>
-        <tbody>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {rows.map((row, rowIdx) => (
-            <tr
-              key={rowIdx}
-              className={cn(
-                "border-b border-border/50 last:border-0",
-                rowIdx % 2 === 0 ? "bg-background" : "bg-muted/10"
-              )}
-            >
+            <TableRow className="even:bg-muted/10" key={rowIdx}>
               {row.map((cell, cellIdx) => (
-                <td key={cellIdx} className="px-4 py-2 text-foreground/80">
+                <TableCell
+                  className="border-border/50 px-4 text-muted-foreground not-last:border-r"
+                  key={cellIdx}
+                >
                   <RenderInline text={cell} ctx={ctx} />
-                </td>
+                </TableCell>
               ))}
-            </tr>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   )
 }
