@@ -4,7 +4,13 @@ import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import { ScrollArea } from "./ui/scroll-area"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "./ui/sheet"
 
 /** Returns true when the viewport is below the md breakpoint (768px). */
 function useIsMobile() {
@@ -137,6 +143,7 @@ export function SidebarShell({
             side={side === "left" ? "left" : "right"}
             className="flex flex-col gap-4 bg-background/80 px-4 py-6 backdrop-blur-lg"
           >
+            <SheetDescription className="sr-only">Sidebar</SheetDescription>
             <SheetHeader className="px-0">
               <SheetTitle className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                 {title}

@@ -73,7 +73,7 @@ export function EditorToolbar({
         status={!doc || !ctx ? { state: "loading" } : syncStatus}
       />
 
-      <div className="absolute inset-x-0 bottom-0 z-1 grid w-full flex-1 grid-cols-3 gap-4 rounded-lg border bg-background/75 p-2 shadow-lg shadow-black/40 backdrop-blur-2xl">
+      <div className="absolute inset-x-0 bottom-0 z-1 grid w-full flex-1 grid-cols-3 gap-4 rounded-lg border border-border/70 bg-background/75 p-2 shadow-lg shadow-black/40 backdrop-blur-2xl">
         <div className="col-start-1 col-end-1">
           {view === "editor" && (
             <Button
@@ -191,40 +191,40 @@ export function EditorToolbar({
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function SyncStatusBanner({ status }: { status: SyncStatus }) {
-  //   const status = { state: "loading" }
+  //   const status = { state: "saving" }
 
   const config = {
     idle: {
       icon: undefined,
       text: "",
-      cls: "bg-transparent -translate-y-16 bg-card",
+      cls: "-translate-y-16 bg-muted/20 text-neutral-300 border-border/60",
     },
     loading: {
       icon: <Loader2 className="h-4 w-4 animate-spin" />,
-      text: "Loading from sheet…",
-      cls: "bg-blue-900 text-blue-300 border-blue-500/20",
+      text: "Loading data…",
+      cls: "bg-cyan-900/30 text-cyan-300 border-cyan-500/20",
     },
     saving: {
       icon: <Loader2 className="h-4 w-4 animate-spin" />,
-      text: "Saving to sheet…",
-      cls: "bg-blue-900 text-blue-300 border-blue-500/20",
+      text: "Saving data…",
+      cls: "bg-cyan-900/30 text-cyan-300 border-cyan-500/20",
     },
     success: {
       icon: <CheckCircle2 className="h-4 w-4" />,
       text: (status as Extract<SyncStatus, { state: "success" }>).message,
-      cls: "bg-green-900 text-green-300 border-green-500/20",
+      cls: "bg-green-900/30 text-green-300 border-green-500/20",
     },
     error: {
       icon: <AlertCircle className="h-4 w-4" />,
       text: (status as Extract<SyncStatus, { state: "error" }>).message,
-      cls: "bg-red-900 text-red-200 border-red-500/20",
+      cls: "bg-red-900/30 text-red-200 border-red-500/20",
     },
   }[status.state]
 
   return (
     <div
       className={cn(
-        "absolute inset-x-[2%] flex h-6 items-center justify-center gap-2 rounded-t-lg border-x border-t px-4 text-sm transition-all duration-300",
+        "absolute inset-x-[2%] flex h-6 items-center justify-center gap-2 rounded-t-lg border-x border-t px-4 text-sm backdrop-blur-lg transition-all duration-300",
         config.cls,
         status.state !== "idle" && "-translate-y-19.5"
       )}

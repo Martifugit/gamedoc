@@ -6,7 +6,7 @@ import {
   ChevronDown,
   ChevronRight,
   Trash2,
-  CornerUpRight,
+  ArrowUpRight,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { type Comment } from "@/lib/gamedoc-types"
@@ -84,27 +84,34 @@ export function CommentComposer({
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="relative">
-        {header}
-        <Textarea
-          autoFocus={autoFocus}
-          placeholder={placeholder ?? `Comment as ${author}…`}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit()
-            if (e.key === "Escape") onCancel()
-          }}
-          className="min-h-0 resize-none bg-transparent! text-xs!"
-          rows={3}
-        />
-      </div>
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] text-muted-foreground">
-          <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to submit · <kbd>Esc</kbd> to cancel
+    <div className="flex flex-col overflow-hidden rounded-lg border border-border bg-background">
+      {/* Textarea */}
+      <Textarea
+        autoFocus={autoFocus}
+        placeholder={placeholder ?? `Share your thoughts…`}
+        value={body}
+        onChange={(e) => setBody(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit()
+          if (e.key === "Escape") onCancel()
+        }}
+        className="min-h-18 resize-none rounded-none border-0 bg-muted/15! text-[13px] shadow-none focus-visible:ring-0"
+        rows={4}
+      />
+
+      {/* Bottom chrome — hints + actions */}
+      <div className="flex items-center justify-end bg-muted/15 py-1.5 pr-2 pl-3 md:justify-between">
+        <span className="hidden text-[11px] text-muted-foreground md:block">
+          <kbd className="rounded border border-border bg-background p-1 font-mono text-[10px]">
+            Ctrl+Enter
+          </kbd>{" "}
+          to submit ·{" "}
+          <kbd className="rounded border border-border bg-background p-1 font-mono text-[10px]">
+            Esc
+          </kbd>{" "}
+          to cancel
         </span>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-1.5">
           <Button
             variant="ghost"
             size="sm"
@@ -129,11 +136,11 @@ export function CommentComposer({
 
 // ── CommentRow ───────────────────────────────────────────────────────────────
 
+// ── CommentRow ───────────────────────────────────────────────────────────────
+
 interface CommentRowProps {
   comment: Comment
-  /** Show the scope chip + "Go to" affordance. Off inside the scoped popover. */
   showScope?: boolean
-  /** Start with replies collapsed. */
   defaultCollapsed?: boolean
 }
 
@@ -160,7 +167,6 @@ export function CommentRow({
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   const handleDelete = async () => {
-    // Stored credential is enough; prompt only if it's missing.
     const ok = await requestCredentials()
     if (!ok) return
     deleteComment(comment.id)
@@ -169,74 +175,117 @@ export function CommentRow({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border/60 bg-card text-sm transition-opacity",
-        comment.resolved && "opacity-50"
+        "group/card rounded-lg border border-border/60 bg-card text-sm transition-all",
+        comment.resolved && "border-border/30 bg-card/50"
       )}
     >
-      {/* Top-level comment */}
-      <div className="flex flex-col gap-1.5 p-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary uppercase">
-              {comment.author[0]}
-            </span>
-            <span className="truncate text-xs font-medium">
+      {/* ── Root comment ── */}
+      <div className="flex flex-col gap-2 p-3">
+        {/* Header row: avatar + meta + action toolbar */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <Avatar author={comment.author} />
+            <span
+              className={cn(
+                "truncate text-xs font-semibold",
+                comment.resolved && "text-muted-foreground"
+              )}
+            >
               {comment.author}
             </span>
-            <span className="shrink-0 text-[10px] text-muted-foreground">
+            <span className="shrink-0 text-[10px] text-muted-foreground/60 tabular-nums">
               {formatTime(comment.createdAt)}
             </span>
+            {comment.resolved && (
+              <span className="shrink-0 rounded-full bg-emerald-500/10 px-1.5 py-px text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                Resolved
+              </span>
+            )}
           </div>
 
-          <div className="flex shrink-0 items-center gap-0.5">
-            {!comment.resolved && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                title="Mark resolved"
-                onClick={() => resolveComment(comment.id)}
-              >
-                <CheckCheck className="h-3.5 w-3.5 text-muted-foreground" />
-              </Button>
-            )}
-            {canDelete && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                title="Delete comment"
-                onClick={() => setConfirmingDelete(true)}
-              >
-                <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
-              </Button>
-            )}
-            {replies.length > 0 && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => setExpanded((p) => !p)}
-              >
-                {expanded ? (
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                ) : (
-                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-                )}
-              </Button>
-            )}
-          </div>
+          {/* Action toolbar — mirrors the toolbar aesthetic: grouped, housed */}
+          {(!comment.resolved || replies.length > 0 || canDelete) && (
+            <div className="flex shrink-0 items-center gap-px rounded-md border border-border/60 bg-muted/60 p-0.5 opacity-0 shadow-sm transition-opacity group-hover/card:opacity-100">
+              {!comment.resolved && (
+                <IconAction
+                  label="Mark resolved"
+                  onClick={() => resolveComment(comment.id)}
+                >
+                  <CheckCheck className="h-3.5 w-3.5" />
+                </IconAction>
+              )}
+              {replies.length > 0 && (
+                <IconAction
+                  label={expanded ? "Collapse replies" : "Expand replies"}
+                  onClick={() => setExpanded((p) => !p)}
+                >
+                  {expanded ? (
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  )}
+                </IconAction>
+              )}
+              {canDelete && (
+                <>
+                  {/* Separator before destructive action */}
+                  <span
+                    className="mx-0.5 h-3.5 w-px bg-border/60"
+                    aria-hidden
+                  />
+                  <IconAction
+                    label="Delete comment"
+                    onClick={() => setConfirmingDelete(true)}
+                    destructive
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </IconAction>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
-        <p className="text-xs leading-relaxed text-foreground/90">
+        {/* Body */}
+        <p
+          className={cn(
+            "text-xs leading-relaxed",
+            comment.resolved ? "text-muted-foreground" : "text-foreground/90"
+          )}
+        >
           {comment.body}
         </p>
 
-        {/* Inline delete confirmation */}
-        {confirmingDelete ? (
-          <div className="flex items-center justify-between gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-2 py-1.5">
+        {/* Footer row: scope chip + reply */}
+        {!confirmingDelete ? (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {showScope && (
+                <button
+                  className="flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
+                  title={`Go to ${scopeLabel(comment.scope, doc)}`}
+                  onClick={() => navigateToScope(comment.scope)}
+                >
+                  {`Go To: ${scopeLabel(comment.scope, doc)}`}
+                  <ArrowUpRight className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+            {!comment.resolved && (
+              <button
+                className="flex items-center gap-1 text-[10px] text-muted-foreground/60 transition-colors hover:text-foreground"
+                onClick={() => setReplying((p) => !p)}
+              >
+                <Reply className="h-3 w-3" />
+                Reply
+              </button>
+            )}
+          </div>
+        ) : (
+          /* Inline delete confirmation */
+          <div className="flex items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-1.5">
             <span className="text-[10px] text-muted-foreground">
-              Delete this comment{replies.length > 0 ? " and its replies" : ""}?
+              Delete{replies.length > 0 ? " comment and replies" : ""}?
             </span>
             <div className="flex gap-1">
               <Button
@@ -260,39 +309,12 @@ export function CommentRow({
               </Button>
             </div>
           </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            {showScope && (
-              <button
-                className="flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
-                title={`Go to ${scopeLabel(comment.scope, doc)}`}
-                onClick={() => navigateToScope(comment.scope)}
-              >
-                {scopeLabel(comment.scope, doc)}
-                {comment.scope.kind !== "global" && (
-                  <CornerUpRight className="h-2.5 w-2.5" />
-                )}
-              </button>
-            )}
-            {!comment.resolved && (
-              <button
-                className="flex items-center gap-1 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
-                onClick={() => setReplying((p) => !p)}
-              >
-                <Reply className="h-3 w-3" />
-                Reply
-              </button>
-            )}
-            {comment.resolved && (
-              <span className="text-[10px] text-emerald-500">Resolved</span>
-            )}
-          </div>
         )}
       </div>
 
-      {/* Reply compose */}
+      {/* ── Reply composer ── */}
       {replying && (
-        <div className="flex flex-col gap-2 border-t border-border/50 px-3 pt-2 pb-3">
+        <div className="border-t border-border/50 px-3 pt-2 pb-3">
           <CommentComposer
             author={author}
             autoFocus
@@ -307,40 +329,41 @@ export function CommentRow({
         </div>
       )}
 
-      {/* Replies */}
+      {/* ── Replies ── */}
       {expanded && replies.length > 0 && (
-        <div className="flex flex-col gap-0 border-t border-border/50">
-          {replies.map((r) => (
+        <div className="border-t border-border/50">
+          {replies.map((r, i) => (
             <div
               key={r.id}
-              className="flex flex-col gap-1 border-b border-border/30 px-3 py-2 last:border-b-0"
+              className={cn(
+                "flex flex-col gap-1.5 px-3 py-2",
+                i < replies.length - 1 && "border-b border-border/30"
+              )}
             >
               <div className="flex items-center justify-between gap-1.5">
-                <div className="flex items-center gap-1.5">
-                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-muted text-[9px] font-semibold uppercase">
-                    {r.author[0]}
-                  </span>
-                  <span className="text-[11px] font-medium">{r.author}</span>
-                  <span className="text-[10px] text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Avatar author={r.author} size="sm" />
+                  <span className="text-[11px] font-semibold">{r.author}</span>
+                  <span className="text-[10px] text-muted-foreground/60 tabular-nums">
                     {formatTime(r.createdAt)}
                   </span>
                 </div>
                 {canDelete && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5"
-                    title="Delete reply"
-                    onClick={async () => {
-                      const ok = await requestCredentials()
-                      if (ok) deleteComment(r.id)
-                    }}
-                  >
-                    <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
-                  </Button>
+                  <div className="opacity-0 transition-opacity group-hover/card:opacity-100">
+                    <IconAction
+                      label="Delete reply"
+                      onClick={async () => {
+                        const ok = await requestCredentials()
+                        if (ok) deleteComment(r.id)
+                      }}
+                      destructive
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </IconAction>
+                  </div>
                 )}
               </div>
-              <p className="pl-5 text-xs leading-relaxed text-foreground/80">
+              <p className="pl-6 text-xs leading-relaxed text-foreground/80">
                 {r.body}
               </p>
             </div>
@@ -348,5 +371,60 @@ export function CommentRow({
         </div>
       )}
     </div>
+  )
+}
+
+// ── Avatar ──────────────────────────────────────────────────────────────────
+// Single source of truth for author avatars — eliminates the size inconsistency
+// between root comments (h-5 w-5) and replies (h-4 w-4).
+
+interface AvatarProps {
+  author: string
+  size?: "sm" | "md"
+}
+
+function Avatar({ author, size = "md" }: AvatarProps) {
+  return (
+    <div
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary uppercase",
+        size === "md" ? "h-6 w-6 text-[11px]" : "h-5 w-5 text-[10px]"
+      )}
+    >
+      <span className="leading-0">{author[0]}</span>
+    </div>
+  )
+}
+
+// ── IconAction ──────────────────────────────────────────────────────────────
+// Consistent icon button used in the action toolbar — gives icons a housed,
+// pressable feel rather than floating ghost buttons.
+
+interface IconActionProps {
+  label: string
+  onClick: () => void
+  destructive?: boolean
+  children: React.ReactNode
+}
+
+function IconAction({
+  label,
+  onClick,
+  destructive,
+  children,
+}: IconActionProps) {
+  return (
+    <button
+      title={label}
+      onClick={onClick}
+      className={cn(
+        "flex h-6 w-6 items-center justify-center rounded transition-colors",
+        destructive
+          ? "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          : "text-muted-foreground hover:bg-background hover:text-foreground"
+      )}
+    >
+      {children}
+    </button>
   )
 }
