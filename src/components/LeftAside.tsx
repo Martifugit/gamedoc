@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useMemo, useEffect } from "react"
 import { GripVertical } from "lucide-react"
-import { cn, headingId, sectionId, truncate, truncateMiddle } from "@/lib/utils"
+import { cn, headingId, sectionId, truncate } from "@/lib/utils"
 import type { GameDoc } from "@/lib/gamedoc-types"
 import { SidebarShell } from "./sidebar-shell"
 
