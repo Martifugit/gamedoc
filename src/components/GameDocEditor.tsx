@@ -29,10 +29,10 @@ import { useAuth } from "@/hooks/use-auth"
 
 export function GameDocEditor() {
   const storageKey = "is_new_project"
+
   const { doc, setDoc, clearCurrentDoc, loaded } = useGameDoc()
   const { autoSync, toggleAutoSync } = useEditorSettings()
 
-  const [query, setQuery] = useState("")
   const [view, setView] = useState<EditorView>("preview")
   const [syncModalState, setSyncModalState] = useState<"load" | "save" | null>(
     null
@@ -252,12 +252,7 @@ export function GameDocEditor() {
   return (
     <div className="min-h-screen max-w-screen overflow-x-clip">
       <div className="mx-auto grid max-w-400 grid-cols-[auto_1fr_auto]">
-        <LeftAside
-          doc={doc}
-          query={query}
-          setQuery={setQuery}
-          onReorder={(next) => update(() => next)}
-        />
+        <LeftAside doc={doc} onReorder={(next) => update(() => next)} />
 
         <CommentsHost
           doc={doc}
@@ -294,7 +289,7 @@ export function GameDocEditor() {
               ctx={ctx}
               doc={doc}
               fileRef={fileRef}
-              credentials={credentials}
+              authorized={authorized}
               syncStatus={syncStatus}
               view={view}
               onExport={onExport}

@@ -167,7 +167,7 @@ const KeyValuePanel = ({
               {kv.pairs.map((pair) => (
                 <div
                   key={pair.id}
-                  className="grid grid-cols-3 gap-2 border-border/30 py-2 not-last:border-b"
+                  className="grid grid-cols-3 gap-2 border-border/30 p-2 not-last:border-b even:bg-muted/4"
                 >
                   <dt className="col-span-1 flex items-start justify-between font-medium text-foreground/70">
                     <RenderInline text={pair.key} ctx={ctx} />

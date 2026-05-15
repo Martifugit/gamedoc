@@ -80,7 +80,10 @@ export function TableBlockView({
           <TableHeader>
             <TableRow>
               {localBlock.headers.map((h, i) => (
-                <TableHead key={i} className="group relative p-1">
+                <TableHead
+                  key={i}
+                  className="group relative bg-muted/15 p-1 not-last:border-r"
+                >
                   <div className="flex items-center gap-1">
                     <input
                       value={h}
@@ -99,7 +102,7 @@ export function TableBlockView({
               ))}
 
               {/* Add column */}
-              <TableHead className="sticky right-0 p-0 px-2">
+              <TableHead className="sticky right-0 bg-background p-0 px-2 after:absolute after:inset-0 after:bg-muted/15">
                 <button
                   className="h-full w-full text-muted-foreground hover:text-destructive"
                   onClick={() => removeColumn(localBlock.headers.length - 1)}
@@ -112,9 +115,9 @@ export function TableBlockView({
           </TableHeader>
           <TableBody>
             {localBlock.rows.map((row, r) => (
-              <TableRow key={r}>
+              <TableRow key={r} className="even:bg-muted/10">
                 {row.map((cell, c) => (
-                  <TableCell key={c} className="p-1">
+                  <TableCell key={c} className="p-1 not-last:border-r">
                     <input
                       value={cell}
                       onChange={(e) => setCell(r, c, e.target.value)}
@@ -123,7 +126,7 @@ export function TableBlockView({
                   </TableCell>
                 ))}
                 {/* Delete row — disabled for the last remaining row */}
-                <TableCell className="sticky right-0 p-0 px-2">
+                <TableCell className="sticky right-0 bg-background p-0 px-2">
                   <button
                     className="text-muted-foreground hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30"
                     disabled={localBlock.rows.length === 1}
