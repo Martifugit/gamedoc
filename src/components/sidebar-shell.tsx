@@ -171,7 +171,7 @@ export function SidebarShell({
   return (
     <aside
       className={cn(
-        "group relative min-h-screen shrink-0 border-border/50 px-4 py-6 transition-[width] duration-200",
+        "group relative min-h-screen shrink-0 border-border/50 p-3 transition-[width] duration-200",
         side === "left" ? "border-r" : "border-l",
         open ? "w-72" : "w-12 bg-muted/5",
         !open && closedAndSettled && "hover:bg-muted/10",
@@ -189,10 +189,10 @@ export function SidebarShell({
       {!open && closedAndSettled && (
         <div
           className={cn(
-            "icon pointer-events-none sticky inset-x-0 top-8 left-1/2 h-0 w-full -translate-x-1/2 opacity-0 transition-opacity group-hover:opacity-100"
+            "icon pointer-events-none sticky top-8 h-0 w-full opacity-0 transition-opacity group-hover:opacity-100"
           )}
         >
-          <div className="absolute inset-x-0 flex h-8 w-8 items-center justify-center">
+          <div className="absolute left-1/2 flex h-8 w-8 -translate-x-1/2 items-center justify-center">
             <SidebarOpen
               className={cn("shrink-0", side === "right" && "rotate-180")}
               size={24}
