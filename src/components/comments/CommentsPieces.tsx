@@ -66,10 +66,8 @@ interface CommentComposerProps {
 }
 
 export function CommentComposer({
-  author,
   placeholder,
   autoFocus,
-  header,
   submitLabel = "Comment",
   onSubmit,
   onCancel,

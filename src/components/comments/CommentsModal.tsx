@@ -327,9 +327,11 @@ export function CommentsModal({
                   autoFocus
                   placeholder={`Comment on ${scopeShortLabel(selected, doc)} as ${author}…`}
                   header={
-                    <div className="absolute -top-2 left-2 z-10 flex h-4 items-center gap-1 rounded-none bg-background px-2 text-[10px] text-muted-foreground">
-                      Posting to:
-                      <span className="font-medium text-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] text-muted-foreground">
+                        Commenting on
+                      </span>
+                      <span className="rounded border border-border bg-background px-1.5 py-px text-[11px] font-medium text-foreground">
                         {scopeShortLabel(selected, doc)}
                       </span>
                     </div>
